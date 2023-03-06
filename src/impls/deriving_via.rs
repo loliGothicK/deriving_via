@@ -366,8 +366,7 @@ fn impl_into(input: &syn::DeriveInput, via: Option<&syn::Path>) -> TokenStream {
             quote! {
                 impl From<#struct_name> for #via {
                     fn from(__: #struct_name) -> Self {
-                        type De = <#via as std::ops::Deref>::Target;
-                        let de: &De = &*__;
+                        let de: &#via = &*__;
                         de.to_owned()
                     }
                 }
@@ -436,8 +435,7 @@ fn impl_display(input: &syn::DeriveInput, via: Option<&syn::Path>) -> TokenStrea
             quote! {
                 impl std::fmt::Display for #struct_name {
                     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                        type De = <#via as std::ops::Deref>::Target;
-                        let de: &De = &*self;
+                        let de: &#via = self;
                         write!(f, "{}", de)
                     }
                 }
@@ -482,9 +480,8 @@ fn impl_eq(input: &syn::DeriveInput, via: Option<&syn::Path>) -> TokenStream {
             quote! {
                 impl std::cmp::PartialEq for #struct_name {
                     fn eq(&self, other: &Self) -> bool {
-                        type De = <#via as std::ops::Deref>::Target;
-                        let left: &De = &*self;
-                        let right: &De = &*other;
+                        let left: &#via = &*self;
+                        let right: &#via = &*other;
                         left.eq(right)
                     }
                 }
@@ -548,9 +545,8 @@ fn impl_ord(input: &syn::DeriveInput, via: Option<&syn::Path>) -> TokenStream {
 
                 impl PartialOrd for #struct_name {
                     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-                        type De = <#via as std::ops::Deref>::Target;
-                        let left: &De = &*self;
-                        let right: &De = &*other;
+                        let left: &#via = &*self;
+                        let right: &#via = &*other;
                         left.partial_cmp(right)
                     }
                 }
@@ -591,8 +587,7 @@ fn impl_hash(input: &syn::DeriveInput, via: Option<&syn::Path>) -> TokenStream {
             quote! {
                 impl std::hash::Hash for #struct_name {
                     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-                        type De = <#via as std::ops::Deref>::Target;
-                        let de: &De = &*self;
+                        let de: &#via = &*self;
                         de.hash(state);
                     }
                 }
@@ -633,8 +628,7 @@ fn impl_serialize(input: &syn::DeriveInput, via: Option<&syn::Path>) -> TokenStr
             quote! {
                 impl serde::Serialize for #struct_name {
                     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-                        type De = <#via as std::ops::Deref>::Target;
-                        let de: &De = &*self;
+                        let de: &#via = &*self;
                         de.serialize(serializer)
                     }
                 }
