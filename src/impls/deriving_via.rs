@@ -13,7 +13,16 @@ struct Derive {
 #[derive(Debug, Default)]
 struct DerivingAttributes(Vec<Derive>);
 
-const AVAILABLE_DERIVES: [&str; 7] = ["Display", "Into", "From", "Eq", "Ord", "FromStr", "Hash"];
+const AVAILABLE_DERIVES: [&str; 8] = [
+    "Display",
+    "Into",
+    "From",
+    "Eq",
+    "Ord",
+    "FromStr",
+    "Hash",
+    "Serialize",
+];
 
 impl DerivingAttributes {
     fn from_attributes(attributes: &[syn::Attribute]) -> syn::Result<Self> {
@@ -33,8 +42,8 @@ impl DerivingAttributes {
                                 vec![Target::builder().path(path).build()]
                             }
                             Derive::DerivingVia(DerivingVia {
-                                                    derive, via: path, ..
-                                                }) => {
+                                derive, via: path, ..
+                            }) => {
                                 vec![Target::builder().path(derive).via(path).build()]
                             }
                         }
@@ -179,6 +188,12 @@ impl DerivingAttributes {
                             .is_ident("Hash")
                             .then(|| impl_hash(input, derive.via.as_ref()))
                     })
+                    .or_else(|| {
+                        derive
+                            .path
+                            .is_ident("Serialize")
+                            .then(|| impl_serialize(input, derive.via.as_ref()))
+                    })
                     .unwrap_or_else(|| {
                         syn::Error::new_spanned(derive.path, "Sorry, unsupported Derive")
                             .to_compile_error()
@@ -235,58 +250,54 @@ fn impl_from_str(input: &syn::DeriveInput) -> TokenStream {
     let field_ty = &field.ty;
 
     match &field_ty {
-        syn::Type::Path(path) if path.path.is_ident("String") => {
-            field_name
-                .as_ref()
-                .map(|field_name| {
-                    quote! {
-                            impl std::str::FromStr for #struct_name {
-                                type Err = std::convert::Infallible;
+        syn::Type::Path(path) if path.path.is_ident("String") => field_name
+            .as_ref()
+            .map(|field_name| {
+                quote! {
+                    impl std::str::FromStr for #struct_name {
+                        type Err = std::convert::Infallible;
 
-                                fn from_str(__: &str) -> std::result::Result<Self, Self::Err> {
-                                    Ok(Self { #field_name: __.to_owned() })
-                                }
-                            }
+                        fn from_str(__: &str) -> std::result::Result<Self, Self::Err> {
+                            Ok(Self { #field_name: __.to_owned() })
                         }
-                })
-                .unwrap_or_else(|| {
-                    quote! {
-                            impl std::str::FromStr for #struct_name {
-                                type Err = std::convert::Infallible;
+                    }
+                }
+            })
+            .unwrap_or_else(|| {
+                quote! {
+                    impl std::str::FromStr for #struct_name {
+                        type Err = std::convert::Infallible;
 
-                                fn from_str(__: &str) -> std::result::Result<Self, Self::Err> {
-                                    Ok(Self(__.to_owned()))
-                                }
-                            }
+                        fn from_str(__: &str) -> std::result::Result<Self, Self::Err> {
+                            Ok(Self(__.to_owned()))
                         }
-                })
-        }
-        _ => {
-            field_name
-                .as_ref()
-                .map(|field_name| {
-                    quote! {
-                            impl std::str::FromStr for #struct_name {
-                                type Err = <#field_ty as std::str::FromStr>::Err;
+                    }
+                }
+            }),
+        _ => field_name
+            .as_ref()
+            .map(|field_name| {
+                quote! {
+                    impl std::str::FromStr for #struct_name {
+                        type Err = <#field_ty as std::str::FromStr>::Err;
 
-                                fn from_str(__: &str) -> std::result::Result<Self, Self::Err> {
-                                    Ok(Self { #field_name: __.parse()? })
-                                }
-                            }
+                        fn from_str(__: &str) -> std::result::Result<Self, Self::Err> {
+                            Ok(Self { #field_name: __.parse()? })
                         }
-                })
-                .unwrap_or_else(|| {
-                    quote! {
-                            impl std::str::FromStr for #struct_name {
-                                type Err = <#field_ty as std::str::FromStr>::Err;
+                    }
+                }
+            })
+            .unwrap_or_else(|| {
+                quote! {
+                    impl std::str::FromStr for #struct_name {
+                        type Err = <#field_ty as std::str::FromStr>::Err;
 
-                                fn from_str(__: &str) -> std::result::Result<Self, Self::Err> {
-                                    Ok(Self(__.parse()?))
-                                }
-                            }
+                        fn from_str(__: &str) -> std::result::Result<Self, Self::Err> {
+                            Ok(Self(__.parse()?))
                         }
-                })
-        }
+                    }
+                }
+            }),
     }
 }
 
@@ -583,6 +594,48 @@ fn impl_hash(input: &syn::DeriveInput, via: Option<&syn::Path>) -> TokenStream {
                         type De = <#via as std::ops::Deref>::Target;
                         let de: &De = &*self;
                         de.hash(state);
+                    }
+                }
+            }
+        },
+    )
+}
+
+fn impl_serialize(input: &syn::DeriveInput, via: Option<&syn::Path>) -> TokenStream {
+    let struct_name = &input.ident;
+    let field = extract_single_field(input);
+    let field = &field.ident;
+
+    via.map_or_else(
+        || {
+            field.as_ref().map_or_else(
+                || {
+                    quote! {
+                        impl serde::Serialize for #struct_name {
+                            fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+                                self.0.serialize(serializer)
+                            }
+                        }
+                    }
+                },
+                |field_name| {
+                    quote! {
+                        impl serde::Serialize for #struct_name {
+                            fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+                                self.#field_name.serialize(serializer)
+                            }
+                        }
+                    }
+                },
+            )
+        },
+        |via| {
+            quote! {
+                impl serde::Serialize for #struct_name {
+                    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+                        type De = <#via as std::ops::Deref>::Target;
+                        let de: &De = &*self;
+                        de.serialize(serializer)
                     }
                 }
             }
