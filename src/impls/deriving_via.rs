@@ -208,11 +208,6 @@ fn impl_try_from(input: &syn::DeriveInput) -> TokenStream {
     let struct_name = &input.ident;
     let field = extract_single_field(input);
 
-    if field.ident.is_none() {
-        return syn::Error::new_spanned(input, "`validated(TryFrom)` requires an named field")
-            .to_compile_error();
-    }
-
     let field_ident = &field.ident;
     let field_ty = &field.ty;
 
