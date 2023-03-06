@@ -1,6 +1,6 @@
 use deriving_via::DerivingVia;
-use serde_json::json;
 use serde::Serializer;
+use serde_json::json;
 
 #[derive(DerivingVia)]
 pub struct Inner(String);
@@ -10,7 +10,7 @@ pub struct Inner(String);
 pub struct Outer(Inner);
 
 fn main() {
-    let foo = Outer(Inner("42".to_owned()));
-    let json = json!({ "key": foo });
+    let value = Outer(Inner("42".to_owned()));
+    let json = json!({ "key": value });
     println!("{json}");
 }

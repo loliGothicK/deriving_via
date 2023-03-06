@@ -3,9 +3,16 @@
 version = 3
 
 [[package]]
+name = "cargo-husky"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7b02b629252fe8ef6460461409564e2c21d0c8e77e0944f3d189ff06c4e932ad"
+
+[[package]]
 name = "deriving_via"
 version = "0.1.0"
 dependencies = [
+ "cargo-husky",
  "proc-macro-error",
  "proc-macro2",
  "quote",
@@ -111,9 +118,9 @@ dependencies = [
 
 [[package]]
 name = "typed-builder"
-version = "0.12.0"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6179333b981641242a768f30f371c9baccbfcc03749627000c500ab88bf4528b"
+checksum = "bd5c107dcbf45d40f13749fe0a83dc58a41af3a01c3fc605806f39d3b5ec8f1a"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -130,6 +137,7 @@ checksum = "e5464a87b239f13a63a501f2701565754bae92d243d4bb7eb12f6d57d2269bf4"
 name = "variving_via_test"
 version = "0.1.0"
 dependencies = [
+ "cargo-husky",
  "deriving_via",
  "serde",
  "serde_json",
