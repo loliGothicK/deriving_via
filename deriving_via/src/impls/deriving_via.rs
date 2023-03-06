@@ -13,7 +13,7 @@ struct Derive {
 #[derive(Debug, Default)]
 struct DerivingAttributes(Vec<Derive>);
 
-const AVAILABLE_DERIVES: [&str; 8] = [
+const AVAILABLE_DERIVES: [&str; 9] = [
     "Display",
     "Into",
     "From",
@@ -22,6 +22,7 @@ const AVAILABLE_DERIVES: [&str; 8] = [
     "FromStr",
     "Hash",
     "Serialize",
+    "Deserialize",
 ];
 
 impl DerivingAttributes {
@@ -193,6 +194,12 @@ impl DerivingAttributes {
                             .path
                             .is_ident("Serialize")
                             .then(|| impl_serialize(input, derive.via.as_ref()))
+                    })
+                    .or_else(|| {
+                        derive
+                            .path
+                            .is_ident("Deserialize")
+                            .then(|| impl_deserialize(input, derive.via.as_ref()))
                     })
                     .unwrap_or_else(|| {
                         syn::Error::new_spanned(derive.path, "Sorry, unsupported Derive")
@@ -628,6 +635,76 @@ fn impl_serialize(input: &syn::DeriveInput, via: Option<&syn::Path>) -> TokenStr
                     }
                 }
             }
+        },
+    )
+}
+
+fn impl_deserialize(input: &syn::DeriveInput, via: Option<&syn::Path>) -> TokenStream {
+    let struct_name = &input.ident;
+    let field = extract_single_field(input);
+    let field_ty = &field.ty;
+    let field = &field.ident;
+
+    via.map_or_else(
+        || {
+            field.as_ref().map_or_else(
+                || {
+                    quote! {
+                        impl<'de> serde::Deserialize<'de> for #struct_name {
+                            fn deserialize<D>(deserializer: D) -> Result<#struct_name, D::Error>
+                            where
+                                D: Deserializer<'de>,
+                            {
+                                Ok(#struct_name(field_ty::deserialize(deserializer)?.into()))
+                            }
+                        }
+                    }
+                },
+                |field_name| {
+                    quote! {
+                        impl<'de> serde::Deserialize<'de> for #struct_name {
+                            fn deserialize<D>(deserializer: D) -> Result<#struct_name, D::Error>
+                            where
+                                D: Deserializer<'de>,
+                            {
+                                Ok(#struct_name {
+                                    #field_name: #field_ty::deserialize(deserializer)?.into()
+                                })
+                            }
+                        }
+                    }
+                },
+            )
+        },
+        |via| {
+            field.as_ref().map_or_else(
+                || {
+                    quote! {
+                        impl<'de> serde::Deserialize<'de> for #struct_name {
+                            fn deserialize<D>(deserializer: D) -> Result<#struct_name, D::Error>
+                            where
+                                D: Deserializer<'de>,
+                            {
+                                Ok(#struct_name(#via::deserialize(deserializer)?.into()))
+                            }
+                        }
+                    }
+                },
+                |field_name| {
+                    quote! {
+                        impl<'de> serde::Deserialize<'de> for #struct_name {
+                            fn deserialize<D>(deserializer: D) -> Result<#struct_name, D::Error>
+                            where
+                                D: Deserializer<'de>,
+                            {
+                                Ok(#struct_name {
+                                    #field_name: #via::deserialize(deserializer)?.into()
+                                })
+                            }
+                        }
+                    }
+                },
+            )
         },
     )
 }
