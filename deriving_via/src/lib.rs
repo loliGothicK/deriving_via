@@ -22,7 +22,7 @@
 //! ## Deriving Via
 //!
 //! Deriving Via allows deriving from beyond a multiply wrapped hierarchy
-//! using transitive type conversion through `Deref` traits.
+//! using transitive type conversion through `Deref`, `Into` or `From` traits.
 //!
 //! ### Example
 //!

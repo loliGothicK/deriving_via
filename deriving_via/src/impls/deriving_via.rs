@@ -1,5 +1,6 @@
 use proc_macro2::TokenStream;
-use quote::quote;
+use quote::{quote, ToTokens};
+use syn::parse2;
 
 use crate::utils::extract_single_field;
 
@@ -7,7 +8,7 @@ use crate::utils::extract_single_field;
 struct Derive {
     path: syn::Path,
     #[builder(default, setter(strip_option))]
-    via: Option<syn::Path>,
+    via: Option<syn::Type>,
 }
 
 #[derive(Debug, Default)]
@@ -61,7 +62,7 @@ impl DerivingAttributes {
         #[derive(Debug)]
         struct DerivingVia {
             derive: syn::Path,
-            via: syn::Path,
+            via: syn::Type,
         }
 
         impl From<syn::Path> for Single {
@@ -70,8 +71,8 @@ impl DerivingAttributes {
             }
         }
 
-        impl From<(syn::Path, syn::Path)> for DerivingVia {
-            fn from((derive, via): (syn::Path, syn::Path)) -> Self {
+        impl From<(syn::Path, syn::Type)> for DerivingVia {
+            fn from((derive, via): (syn::Path, syn::Type)) -> Self {
                 Self { derive, via }
             }
         }
@@ -87,23 +88,21 @@ impl DerivingAttributes {
                 Call(syn::ExprCall { func, args, .. }) => match &*func {
                     Path(path) => match args.iter().collect::<Vec<_>>().as_slice() {
                         [Assign(syn::ExprAssign { left, right, .. })] => {
-                            if let (Path(keyword), Path(via)) = (&**left, &**right) {
+                            if let (Path(keyword), ty) = (&**left, &**right) {
                                 if keyword.path.is_ident("via") {
-                                    return Ok(Derive::DerivingVia(DerivingVia::from((
-                                        path.path.clone(),
-                                        via.path.clone(),
-                                    ))));
+                                    return if let Ok(ty) = parse2(ty.into_token_stream()) {
+                                        Ok(Derive::DerivingVia(DerivingVia::from((
+                                            path.path.clone(),
+                                            ty,
+                                        ))))
+                                    } else {
+                                        Err(syn::Error::new_spanned(ty, "expected: <Type>"))
+                                    };
                                 }
                             }
-                            Err(syn::Error::new_spanned(
-                                args,
-                                "expected: (via = <TypeName>)",
-                            ))
+                            Err(syn::Error::new_spanned(args, "expected: (via = <Type>)"))
                         }
-                        _ => Err(syn::Error::new_spanned(
-                            args,
-                            "expected: (via = <TypeName>)",
-                        )),
+                        _ => Err(syn::Error::new_spanned(args, "expected: (via = <Type>)")),
                     },
                     _ => Err(syn::Error::new_spanned(*func, "unavailable custom option")),
                 },
@@ -122,10 +121,7 @@ impl DerivingAttributes {
                     match expr {
                         Paren(expr) => try_parse(*expr.expr).map(|derive| vec![derive]),
                         Tuple(items) => items.elems.into_iter().map(try_parse).collect(),
-                        expr => Err(syn::Error::new_spanned(
-                            dbg!(expr),
-                            "expected: (<Item>, ...)",
-                        )),
+                        expr => Err(syn::Error::new_spanned(expr, "expected: (<Item>, ...)")),
                     }
                 })
                 .collect::<syn::Result<Vec<_>>>()?
@@ -151,12 +147,12 @@ impl DerivingAttributes {
                 derive
                     .path
                     .is_ident("TryFrom")
-                    .then(|| impl_try_from(input))
+                    .then(|| impl_try_from(input, derive.via.as_ref()))
                     .or_else(|| {
                         derive
                             .path
                             .is_ident("FromStr")
-                            .then(|| impl_from_str(input))
+                            .then(|| impl_from_str(input, derive.via.as_ref()))
                     })
                     .or_else(|| {
                         derive
@@ -211,47 +207,79 @@ impl DerivingAttributes {
     }
 }
 
-fn impl_try_from(input: &syn::DeriveInput) -> TokenStream {
+fn impl_try_from(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
     let field = extract_single_field(input);
 
     let field_ident = &field.ident;
     let field_ty = &field.ty;
 
-    field_ident.as_ref().map_or_else(
+    via.map_or_else(
         || {
-            quote! {
-                impl std::convert::TryFrom<#field_ty> for #struct_name {
-                    type Err = <#field_ty as std::str::TryFrom>::Err;
+            field_ident.as_ref().map_or_else(
+                || {
+                    quote! {
+                        impl std::convert::TryFrom<#field_ty> for #struct_name {
+                            type Error = <#field_ty as std::str::TryFrom>::Error;
 
-                    fn try_from(__: #field_ty) -> std::result::Result<Self, Self::Error> {
-                        Ok(Self(__.try_into()?))
+                            fn try_from(__: #field_ty) -> std::result::Result<Self, Self::Error> {
+                                Ok(Self(__.try_into()?))
+                            }
+                        }
                     }
-                }
-            }
+                },
+                |field_name| {
+                    quote! {
+                        impl std::convert::TryFrom<#field_ty> for #struct_name {
+                            type Error = <#field_ty as std::str::TryFrom>::Error;
+
+                            fn try_from(__: #field_ty) -> std::result::Result<Self, Self::Error> {
+                                Ok(Self { #field_name: __.try_into()? })
+                            }
+                        }
+                    }
+                },
+            )
         },
-        |field_name| {
-            quote! {
-                impl std::convert::TryFrom<#field_ty> for #struct_name {
-                    type Error = validator::ValidationErrors;
+        |via| {
+            field_ident.as_ref().map_or_else(
+                || {
+                    quote! {
+                        impl std::convert::TryFrom<#field_ty> for #struct_name {
+                            type Error = <#via as std::str::TryFrom>::Error;
 
-                    fn try_from(__: #field_ty) -> std::result::Result<Self, Self::Error> {
-                        Ok(Self { #field_name: __.try_into()? })
+                            fn try_from(__: #field_ty) -> std::result::Result<Self, Self::Error> {
+                                let intermediate: #via = __.try_into()?;
+                                Ok(Self(intermediate.into()))
+                            }
+                        }
                     }
-                }
-            }
+                },
+                |field_name| {
+                    quote! {
+                        impl std::convert::TryFrom<#field_ty> for #struct_name {
+                            type Error = <#via as std::str::TryFrom>::Error;
+
+                            fn try_from(__: #field_ty) -> std::result::Result<Self, Self::Error> {
+                                let intermediate: #via = __.try_into()?;
+                                Ok(Self { #field_name: intermediate.into() })
+                            }
+                        }
+                    }
+                },
+            )
         },
     )
 }
 
-fn impl_from_str(input: &syn::DeriveInput) -> TokenStream {
+fn impl_from_str(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
     let field = extract_single_field(input);
 
     let field_name = &field.ident;
     let field_ty = &field.ty;
 
-    match &field_ty {
+    match via.unwrap_or(field_ty) {
         syn::Type::Path(path) if path.path.is_ident("String") => field_name
             .as_ref()
             .map(|field_name| {
@@ -276,15 +304,16 @@ fn impl_from_str(input: &syn::DeriveInput) -> TokenStream {
                     }
                 }
             }),
-        _ => field_name
+        ty => field_name
             .as_ref()
             .map(|field_name| {
                 quote! {
                     impl std::str::FromStr for #struct_name {
-                        type Err = <#field_ty as std::str::FromStr>::Err;
+                        type Err = <#ty as std::str::FromStr>::Err;
 
                         fn from_str(__: &str) -> std::result::Result<Self, Self::Err> {
-                            Ok(Self { #field_name: __.parse()? })
+                            let intermediate: #ty = __.parse()?;
+                            Ok(Self { #field_name: intermediate.into() })
                         }
                     }
                 }
@@ -292,10 +321,11 @@ fn impl_from_str(input: &syn::DeriveInput) -> TokenStream {
             .unwrap_or_else(|| {
                 quote! {
                     impl std::str::FromStr for #struct_name {
-                        type Err = <#field_ty as std::str::FromStr>::Err;
+                        type Err = <#ty as std::str::FromStr>::Err;
 
                         fn from_str(__: &str) -> std::result::Result<Self, Self::Err> {
-                            Ok(Self(__.parse()?))
+                            let intermediate: #ty = __.parse()?;
+                            Ok(Self(intermediate.into()))
                         }
                     }
                 }
@@ -335,7 +365,7 @@ fn impl_deref(input: &syn::DeriveInput) -> TokenStream {
     )
 }
 
-fn impl_into(input: &syn::DeriveInput, via: Option<&syn::Path>) -> TokenStream {
+fn impl_into(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
     let field = extract_single_field(input);
     let field_ident = &field.ident;
@@ -405,7 +435,7 @@ fn impl_from(input: &syn::DeriveInput) -> TokenStream {
     )
 }
 
-fn impl_display(input: &syn::DeriveInput, via: Option<&syn::Path>) -> TokenStream {
+fn impl_display(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
     let field = extract_single_field(input);
     let field = &field.ident;
@@ -446,7 +476,7 @@ fn impl_display(input: &syn::DeriveInput, via: Option<&syn::Path>) -> TokenStrea
     )
 }
 
-fn impl_eq(input: &syn::DeriveInput, via: Option<&syn::Path>) -> TokenStream {
+fn impl_eq(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
     let field = extract_single_field(input);
     let field = &field.ident;
@@ -494,7 +524,7 @@ fn impl_eq(input: &syn::DeriveInput, via: Option<&syn::Path>) -> TokenStream {
     )
 }
 
-fn impl_ord(input: &syn::DeriveInput, via: Option<&syn::Path>) -> TokenStream {
+fn impl_ord(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
     let field = extract_single_field(input);
     let field = &field.ident;
@@ -557,7 +587,7 @@ fn impl_ord(input: &syn::DeriveInput, via: Option<&syn::Path>) -> TokenStream {
     )
 }
 
-fn impl_hash(input: &syn::DeriveInput, via: Option<&syn::Path>) -> TokenStream {
+fn impl_hash(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
     let field = extract_single_field(input);
     let field = &field.ident;
@@ -598,7 +628,7 @@ fn impl_hash(input: &syn::DeriveInput, via: Option<&syn::Path>) -> TokenStream {
     )
 }
 
-fn impl_serialize(input: &syn::DeriveInput, via: Option<&syn::Path>) -> TokenStream {
+fn impl_serialize(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
     let field = extract_single_field(input);
     let field = &field.ident;
@@ -639,7 +669,7 @@ fn impl_serialize(input: &syn::DeriveInput, via: Option<&syn::Path>) -> TokenStr
     )
 }
 
-fn impl_deserialize(input: &syn::DeriveInput, via: Option<&syn::Path>) -> TokenStream {
+fn impl_deserialize(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
     let field = extract_single_field(input);
     let field_ty = &field.ty;

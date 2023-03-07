@@ -2,6 +2,18 @@
 
 This library is a slightly more convenient version of [`derive_more`](https://docs.rs/derive_more/latest/derive_more/).
 
+## Syntax
+
+```rust
+#[derive(DerivingVia)]
+#[deriving(<Derive>...)]
+struct Target(Base);
+```
+
+```text
+Derive := <Trait> | <Trait>(via = <Type>)
+```
+
 ## Example
 
 In this example, the `Inner` does not derive the `Eq` or `Display`,
@@ -28,12 +40,25 @@ fn main() {
 
 ## Available Derives
 
+```rust
+struct Base(Underlying);
+
+#[derive(DerivingVia)]
+#[deriving(<Derive>...)]
+struct Target(Base);
+```
+
 - Display
 - Into
+  - additional requires: `Base: Into<Underlying>`
 - From
+  - additional requires: `Base: From<Underlying>`
 - Eq
 - Ord
+- TryFrom
+  - additional requires: `Base: From<Underlying>`
 - FromStr
+  - additional requires: `Base: From<Underlying>`
 - Hash
-- Serialize
-- Deserialize
+- serde::Serialize
+- serde::Deserialize
