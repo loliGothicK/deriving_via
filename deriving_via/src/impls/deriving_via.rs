@@ -1,5 +1,7 @@
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
+use strum::IntoEnumIterator;
+use strum_macros::{EnumIter, IntoStaticStr};
 use syn::parse2;
 
 use crate::utils::extract_single_field;
@@ -14,17 +16,26 @@ struct Derive {
 #[derive(Debug, Default)]
 struct DerivingAttributes(Vec<Derive>);
 
-const AVAILABLE_DERIVES: [&str; 9] = [
-    "Display",
-    "Into",
-    "From",
-    "Eq",
-    "Ord",
-    "FromStr",
-    "Hash",
-    "Serialize",
-    "Deserialize",
-];
+#[derive(EnumIter, IntoStaticStr)]
+#[strum(serialize_all = "PascalCase")]
+enum AvailableDerives {
+    Display,
+    Into,
+    From,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    TryFrom,
+    FromStr,
+    Hash,
+    Serialize,
+    Deserialize,
+    Add,
+    Mul,
+    Arithmetic,
+    AsRef,
+}
 
 impl DerivingAttributes {
     fn from_attributes(attributes: &[syn::Attribute]) -> syn::Result<Self> {
@@ -80,9 +91,8 @@ impl DerivingAttributes {
         fn try_parse(input: syn::Expr) -> syn::Result<Derive> {
             use syn::Expr::{Assign, Call, Path};
             match input {
-                Path(derive) => AVAILABLE_DERIVES
-                    .iter()
-                    .any(|available_derive| derive.path.is_ident(available_derive))
+                Path(derive) => AvailableDerives::iter()
+                    .any(|available_derive| derive.path.is_ident(available_derive.into()))
                     .then(|| Derive::Single(Single::from(derive.path.clone())))
                     .ok_or_else(|| syn::Error::new_spanned(derive, "unavailable derive")),
                 Call(syn::ExprCall { func, args, .. }) => match &*func {
@@ -116,7 +126,7 @@ impl DerivingAttributes {
                 .filter_map(|attr| attr.path.is_ident("deriving").then_some(&attr.tokens))
                 .cloned()
                 .map(|tokens| -> syn::Result<Vec<_>> {
-                    let expr: syn::Expr = syn::parse2(tokens).unwrap();
+                    let expr: syn::Expr = parse2(tokens).unwrap();
                     use syn::Expr::{Paren, Tuple};
                     match expr {
                         Paren(expr) => try_parse(*expr.expr).map(|derive| vec![derive]),
@@ -170,13 +180,25 @@ impl DerivingAttributes {
                         derive
                             .path
                             .is_ident("Eq")
-                            .then(|| impl_eq(input, derive.via.as_ref()))
+                            .then(|| impl_eq(input, derive.via.as_ref(), true))
+                    })
+                    .or_else(|| {
+                        derive
+                            .path
+                            .is_ident("PartialEq")
+                            .then(|| impl_eq(input, derive.via.as_ref(), false))
                     })
                     .or_else(|| {
                         derive
                             .path
                             .is_ident("Ord")
-                            .then(|| impl_ord(input, derive.via.as_ref()))
+                            .then(|| impl_ord(input, derive.via.as_ref(), true))
+                    })
+                    .or_else(|| {
+                        derive
+                            .path
+                            .is_ident("Ord")
+                            .then(|| impl_ord(input, derive.via.as_ref(), false))
                     })
                     .or_else(|| derive.path.is_ident("From").then(|| impl_from(input)))
                     .or_else(|| {
@@ -196,6 +218,34 @@ impl DerivingAttributes {
                             .path
                             .is_ident("Deserialize")
                             .then(|| impl_deserialize(input, derive.via.as_ref()))
+                    })
+                    .or_else(|| {
+                        derive
+                            .path
+                            .is_ident("Add")
+                            .then(|| impl_add(input, derive.via.as_ref()))
+                    })
+                    .or_else(|| {
+                        derive
+                            .path
+                            .is_ident("Mul")
+                            .then(|| impl_mul(input, derive.via.as_ref()))
+                    })
+                    .or_else(|| {
+                        derive.path.is_ident("Arithmetic").then(|| {
+                            [
+                                impl_add(input, derive.via.as_ref()),
+                                impl_mul(input, derive.via.as_ref()),
+                            ]
+                            .into_iter()
+                            .collect()
+                        })
+                    })
+                    .or_else(|| {
+                        derive
+                            .path
+                            .is_ident("AsRef")
+                            .then(|| impl_as_ref(input, derive.via.as_ref()))
                     })
                     .unwrap_or_else(|| {
                         syn::Error::new_spanned(derive.path, "Sorry, unsupported Derive")
@@ -476,10 +526,11 @@ fn impl_display(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStrea
     )
 }
 
-fn impl_eq(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
+fn impl_eq(input: &syn::DeriveInput, via: Option<&syn::Type>, with_eq: bool) -> TokenStream {
     let struct_name = &input.ident;
     let field = extract_single_field(input);
     let field = &field.ident;
+    let impl_eq = with_eq.then(|| quote! { impl std::cmp::Eq for #struct_name {} });
 
     via.map_or_else(
         || {
@@ -492,7 +543,7 @@ fn impl_eq(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
                             }
                         }
 
-                        impl std::cmp::Eq for #struct_name {}
+                        #impl_eq
                     }
                 },
                 |field_name| {
@@ -503,7 +554,7 @@ fn impl_eq(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
                             }
                         }
 
-                        impl std::cmp::Eq for #struct_name {}
+                        #impl_eq
                     }
                 },
             )
@@ -524,7 +575,7 @@ fn impl_eq(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
     )
 }
 
-fn impl_ord(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
+fn impl_ord(input: &syn::DeriveInput, via: Option<&syn::Type>, with_ord: bool) -> TokenStream {
     let struct_name = &input.ident;
     let field = extract_single_field(input);
     let field = &field.ident;
@@ -533,33 +584,43 @@ fn impl_ord(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
         || {
             field.as_ref().map_or_else(
                 || {
-                    quote! {
-                        impl Ord for #struct_name {
-                            fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-                                self.0.cmp(&other.0)
+                    let impl_ord = with_ord.then(|| {
+                        quote! {
+                            impl Ord for #struct_name {
+                                fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+                                    self.0.cmp(&other.0)
+                                }
                             }
                         }
-
+                    });
+                    quote! {
                         impl PartialOrd for #struct_name {
                             fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
                                 self.0.partial_cmp(&other.0)
                             }
                         }
+
+                        #impl_ord
                     }
                 },
                 |field_name| {
-                    quote! {
-                        impl Ord for #struct_name {
-                            fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-                                self.#field_name.cmp(&other.#field_name)
+                    let impl_ord = with_ord.then(|| {
+                        quote! {
+                            impl Ord for #struct_name {
+                                fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+                                    self.#field_name.cmp(&other.#field_name)
+                                }
                             }
                         }
-
+                    });
+                    quote! {
                         impl PartialOrd for #struct_name {
                             fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
                                 self.#field_name.partial_cmp(&other.#field_name)
                             }
                         }
+
+                        #impl_ord
                     }
                 },
             )
@@ -730,6 +791,282 @@ fn impl_deserialize(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenS
                                 Ok(#struct_name {
                                     #field_name: #via::deserialize(deserializer)?.into()
                                 })
+                            }
+                        }
+                    }
+                },
+            )
+        },
+    )
+}
+
+fn impl_add(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
+    let struct_name = &input.ident;
+    let field = extract_single_field(input);
+    let field = &field.ident;
+
+    via.map_or_else(
+        || {
+            field.as_ref().map_or_else(
+                || {
+                    quote! {
+                        impl std::ops::Add for #struct_name {
+                            type Output = Self;
+
+                            fn add(self, other: Self) -> Self {
+                                Self((self.0 + other.0).into())
+                            }
+                        }
+                        impl std::ops::Sub for #struct_name {
+                            type Output = Self;
+
+                            fn sub(self, other: Self) -> Self {
+                                Self((self.0 - other.0).into())
+                            }
+                        }
+                    }
+                },
+                |field_name| {
+                    quote! {
+                        impl std::ops::Add for #struct_name {
+                            type Output = Self;
+
+                            fn add(self, other: Self) -> Self {
+                                Self {
+                                    #field_name: (self.#field_name + other.#field_name).into()
+                                }
+                            }
+                        }
+                        impl std::ops::Sub for #struct_name {
+                            type Output = Self;
+
+                            fn sub(self, other: Self) -> Self {
+                                Self {
+                                    #field_name: (self.#field_name - other.#field_name).into()
+                                }
+                            }
+                        }
+                    }
+                },
+            )
+        },
+        |via| {
+            field.as_ref().map_or_else(
+                || {
+                    quote! {
+                        impl std::ops::Add for #struct_name {
+                            type Output = Self;
+
+                            fn add(self, other: Self) -> Self {
+                                let lhs: &#via = &*self;
+                                let rhs: &#via = &*self;
+                                Self((lhs.to_owned() + rhs.to_owned()).into())
+                            }
+                        }
+                        impl std::ops::Sub for #struct_name {
+                            type Output = Self;
+
+                            fn sub(self, other: Self) -> Self {
+                                let lhs: &#via = &*self;
+                                let rhs: &#via = &*self;
+                                Self((lhs.to_owned() - rhs.to_owned()).into())
+                            }
+                        }
+                    }
+                },
+                |field_name| {
+                    quote! {
+                        impl std::ops::Add for #struct_name {
+                            type Output = Self;
+
+                            fn add(self, other: Self) -> Self {
+                                let lhs: &#via = &*self;
+                                let rhs: &#via = &*self;
+                                Self {
+                                    #field_name: (lhs.to_owned() + rhs.to_owned()).into()
+                                }
+                            }
+                        }
+                        impl std::ops::Sub for #struct_name {
+                            type Output = Self;
+
+                            fn sub(self, other: Self) -> Self {
+                                let lhs: &#via = &*self;
+                                let rhs: &#via = &*self;
+                                Self {
+                                    #field_name: (lhs.to_owned() - rhs.to_owned()).into()
+                                }
+                            }
+                        }
+                    }
+                },
+            )
+        },
+    )
+}
+
+fn impl_mul(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
+    let struct_name = &input.ident;
+    let field = extract_single_field(input);
+    let field = &field.ident;
+
+    via.map_or_else(
+        || {
+            field.as_ref().map_or_else(
+                || {
+                    quote! {
+                        impl std::ops::Mul for #struct_name {
+                            type Output = Self;
+
+                            fn mul(self, other: Self) -> Self {
+                                Self((self.0 * other.0).into())
+                            }
+                        }
+                        impl std::ops::Div for #struct_name {
+                            type Output = Self;
+
+                            fn div(self, other: Self) -> Self {
+                                Self((self.0 / other.0).into())
+                            }
+                        }
+                    }
+                },
+                |field_name| {
+                    quote! {
+                        impl std::ops::Mul for #struct_name {
+                            type Output = Self;
+
+                            fn mul(self, other: Self) -> Self {
+                                Self {
+                                    #field_name: (self.#field_name * other.#field_name).into()
+                                }
+                            }
+                        }
+                        impl std::ops::Div for #struct_name {
+                            type Output = Self;
+
+                            fn div(self, other: Self) -> Self {
+                                Self {
+                                    #field_name: (self.#field_name / other.#field_name).into()
+                                }
+                            }
+                        }
+                    }
+                },
+            )
+        },
+        |via| {
+            field.as_ref().map_or_else(
+                || {
+                    quote! {
+                        impl std::ops::Mul for #struct_name {
+                            type Output = Self;
+
+                            fn mul(self, other: Self) -> Self {
+                                let lhs: &#via = &*self;
+                                let rhs: &#via = &*self;
+                                Self((lhs.to_owned() * rhs.to_owned()).into())
+                            }
+                        }
+                        impl std::ops::Div for #struct_name {
+                            type Output = Self;
+
+                            fn div(self, other: Self) -> Self {
+                                let lhs: &#via = &*self;
+                                let rhs: &#via = &*self;
+                                Self((lhs.to_owned() / rhs.to_owned()).into())
+                            }
+                        }
+                    }
+                },
+                |field_name| {
+                    quote! {
+                        impl std::ops::Mul for #struct_name {
+                            type Output = Self;
+
+                            fn mul(self, other: Self) -> Self {
+                                let lhs: &#via = &*self;
+                                let rhs: &#via = &*self;
+                                Self {
+                                    #field_name: (lhs.to_owned() * rhs.to_owned()).into()
+                                }
+                            }
+                        }
+                        impl std::ops::Div for #struct_name {
+                            type Output = Self;
+
+                            fn div(self, other: Self) -> Self {
+                                let lhs: &#via = &*self;
+                                let rhs: &#via = &*self;
+                                Self {
+                                    #field_name: (lhs.to_owned() / rhs.to_owned()).into()
+                                }
+                            }
+                        }
+                    }
+                },
+            )
+        },
+    )
+}
+
+fn impl_as_ref(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
+    let struct_name = &input.ident;
+    let field = extract_single_field(input);
+    let field_ty = &field.ty;
+    let field = &field.ident;
+
+    via.map_or_else(
+        || {
+            field.as_ref().map_or_else(
+                || {
+                    quote! {
+                        impl<__AsRefT: ?::core::marker::Sized> ::core::convert::AsRef<__AsRefT> for #struct_name
+                        where
+                            #field_ty: ::core::convert::AsRef<__AsRefT>,
+                        {
+                            #[inline]
+                            fn as_ref(&self) -> &__AsRefT {
+                                <#field_ty as ::core::convert::AsRef<__AsRefT>>::as_ref(&self.0)
+                            }
+                        }
+                    }
+                },
+                |field_name| {
+                    quote! {
+                        impl<__AsRefT: ?::core::marker::Sized> ::core::convert::AsRef<__AsRefT> for #struct_name
+                        where
+                            #field_ty: ::core::convert::AsRef<__AsRefT>,
+                        {
+                            #[inline]
+                            fn as_ref(&self) -> &__AsRefT {
+                                <#field_ty as ::core::convert::AsRef<__AsRefT>>::as_ref(&self.#field_name)
+                            }
+                        }
+                    }
+                },
+            )
+        },
+        |via| {
+            field.as_ref().map_or_else(
+                || {
+                    quote! {
+                        impl ::core::convert::AsRef<#via> for #struct_name
+                        {
+                            #[inline]
+                            fn as_ref(&self) -> &#via {
+                                &*self.0
+                            }
+                        }
+                    }
+                },
+                |field_name| {
+                    quote! {
+                        impl ::core::convert::AsRef<#via> for #struct_name
+                        {
+                            #[inline]
+                            fn as_ref(&self) -> &#via {
+                                &*self.#field_name
                             }
                         }
                     }

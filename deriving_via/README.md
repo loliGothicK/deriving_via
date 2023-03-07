@@ -52,22 +52,31 @@ struct Base(Underlying);
 struct Target(Base);
 ```
 
-- Display
-- Eq
-- Ord
-- Hash
-- serde::Serialize
-- serde::Deserialize
-- Into
+- `Display`
+- `Eq`
+- `Ord`
+- `Hash`
+- `serde::Serialize`
+- `serde::Deserialize`
+- `Into`
   - additional requirements: `Base: Into<Underlying>`
   - limitations: one hop
-- From
+- `From`
   - additional requirements: `Base: From<Underlying>`
   - limitations: one hop
-- TryFrom
+- `TryFrom`
   - additional requirements: `Base: From<Underlying>`
   - limitations: one hop
-- FromStr
+- `FromStr`
+  - additional requirements: `Base: From<Underlying>`
+  - limitations: one hop
+- `Add`-lile (Add, Sub)
+  - additional requirements: `Base: From<Underlying>`
+  - limitations: one hop
+- `Mul`-like (Mul, Div)
+  - additional requirements: `Base: From<Underlying>`
+  - limitations: one hop
+- `Arithmetic` (Add, Sub, Mul, Div)
   - additional requirements: `Base: From<Underlying>`
   - limitations: one hop
 
