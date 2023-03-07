@@ -1,13 +1,16 @@
 use deriving_via::DerivingVia;
 
 #[derive(DerivingVia)]
-#[deriving(From)]
-pub struct Inner(i32);
+pub struct A(i32);
 
 #[derive(DerivingVia)]
-#[deriving(FromStr(via = i32))]
-pub struct Outer(Inner);
+pub struct B(A);
+
+#[derive(DerivingVia)]
+#[deriving(Display(via = i32))]
+pub struct C(B);
 
 fn main() {
-    let _: Outer = "42".parse().unwrap();
+    let c = C(B(A(42)));
+    println!("{c}");
 }

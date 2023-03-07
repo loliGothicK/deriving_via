@@ -18,27 +18,32 @@ The syntax of `<Derive>` is defined as follows.
 Derive := <Trait> | <Trait>(via = <Type>)
 ```
 
-## Example
+## How DerivingVia works
 
-In this example, the `Inner` does not derive the `Eq` or `Display`,
-but `Outer` derives them via `i32`.
+`DerivingVia` uses transitive type coercion for type conversion.
+All newtypes must be dereferenceable to the underlying type.
+
+Therefore, `DerivingVia` automatically implies a `Deref` trait.
+
+
+## Example
 
 ```rust
 use deriving_via::DerivingVia;
 
-#[derive(DerivingVia)]
-pub struct Inner(i32);
+#[derive(DerivingVia)] // for Deref
+pub struct A(i32);
+
+#[derive(DerivingVia)] // for Deref
+pub struct B(A);
 
 #[derive(DerivingVia)]
-#[deriving(Eq(via = i32), Display(via = i32))]
-pub struct Outer(Inner);
+#[deriving(Display(via = i32))]
+pub struct C(B);
 
 fn main() {
-    let x = Outer(Inner(42));
-    let y = Outer(Inner(42));
-
-    println!("{x} == {y} => {}", x == y);
-    // 42 == 42 => true
+  let c = C(B(A(42)));
+  println!("{c}"); // 42
 }
 ```
 
