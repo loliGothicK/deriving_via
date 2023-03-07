@@ -25,7 +25,6 @@ All newtypes must be dereferenceable to the underlying type.
 
 Therefore, `DerivingVia` automatically implies a `Deref` trait.
 
-
 ## Example
 
 ```rust
@@ -57,24 +56,33 @@ struct Base(Underlying);
 struct Target(Base);
 ```
 
-- Display
-- Eq
-- Ord
-- Hash
-- serde::Serialize
-- serde::Deserialize
-- Into
-    - additional requirements: `Base: Into<Underlying>`
-    - limitations: one hop
-- From
-    - additional requirements: `Base: From<Underlying>`
-    - limitations: one hop
-- TryFrom
-    - additional requirements: `Base: From<Underlying>`
-    - limitations: one hop
-- FromStr
-    - additional requirements: `Base: From<Underlying>`
-    - limitations: one hop
+- `Display`
+- `Eq`
+- `Ord`
+- `Hash`
+- `serde::Serialize`
+- `serde::Deserialize`
+- `Into`
+  - additional requirements: `Base: Into<Underlying>`
+  - limitations: one hop
+- `From`
+  - additional requirements: `Base: From<Underlying>`
+  - limitations: one hop
+- `TryFrom`
+  - additional requirements: `Base: From<Underlying>`
+  - limitations: one hop
+- `FromStr`
+  - additional requirements: `Base: From<Underlying>`
+  - limitations: one hop
+- `Add`-lile (Add, Sub)
+  - additional requirements: `Base: From<Underlying>`
+  - limitations: one hop
+- `Mul`-like (Mul, Div)
+  - additional requirements: `Base: From<Underlying>`
+  - limitations: one hop
+- `Arithmetic` (Add, Sub, Mul, Div)
+  - additional requirements: `Base: From<Underlying>`
+  - limitations: one hop
 
 ## Caveat
 
