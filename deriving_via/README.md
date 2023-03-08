@@ -23,26 +23,42 @@ Derive := <Trait> | <Trait>(via = <Type>)
 `DerivingVia` uses transitive type coercion for type conversion.
 All newtypes must be dereferenceable to the underlying type.
 
-Therefore, `DerivingVia` automatically implies a `Deref` trait.
+Therefore, `DerivingVia` automatically generates a `Deref` trait.
+
+`Deref` trait works transitive, but how we re-constructs a `Self` type?
+Unfortunately, no convenience mechanism exists in the language,
+so it is necessary to teach how to revert using the `#[transitive]` attribute.
 
 ## Example
 
 ```rust
+use std::fmt::Display;
+
 use deriving_via::DerivingVia;
 
-#[derive(DerivingVia)] // for Deref
+#[derive(DerivingVia)]
+#[deriving(From)]
 pub struct A(i32);
 
-#[derive(DerivingVia)] // for Deref
+#[derive(DerivingVia)]
+#[deriving(From)]
 pub struct B(A);
 
 #[derive(DerivingVia)]
-#[deriving(Display(via = i32))]
+#[deriving(From, Add(via = i32), Display(via = i32))]
+#[transitive(i32 -> A -> B -> C)]
 pub struct C(B);
 
+#[derive(DerivingVia)]
+#[deriving(From, Display(via = T))]
+pub struct D<T: Display>(T);
+
 fn main() {
-  let c = C(B(A(42)));
-  println!("{c}"); // 42
+  let c = C(B(A(42))) + C(B(A(42)));
+  println!("{c}");
+
+  let d = D("foo".to_owned());
+  println!("{d}");
 }
 ```
 
@@ -64,25 +80,25 @@ struct Target(Base);
 - `serde::Deserialize`
 - `Into`
   - additional requirements: `Base: Into<Underlying>`
-  - limitations: one hop
+  - limitations: one hop or `#[transitive]`
 - `From`
   - additional requirements: `Base: From<Underlying>`
-  - limitations: one hop
+  - limitations: one hop or `#[transitive]`
 - `TryFrom`
   - additional requirements: `Base: From<Underlying>`
-  - limitations: one hop
+  - limitations: one hop or `#[transitive]`
 - `FromStr`
   - additional requirements: `Base: From<Underlying>`
-  - limitations: one hop
+  - limitations: one hop or `#[transitive]`
 - `Add`-lile (Add, Sub)
   - additional requirements: `Base: From<Underlying>`
-  - limitations: one hop
+  - limitations: one hop or `#[transitive]`
 - `Mul`-like (Mul, Div)
   - additional requirements: `Base: From<Underlying>`
-  - limitations: one hop
+  - limitations: one hop or `#[transitive]`
 - `Arithmetic` (Add, Sub, Mul, Div)
   - additional requirements: `Base: From<Underlying>`
-  - limitations: one hop
+  - limitations: one hop or `#[transitive]`
 
 ## Caveat
 
