@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use deriving_via::DerivingVia;
 
 #[derive(DerivingVia)]
@@ -5,15 +7,22 @@ use deriving_via::DerivingVia;
 pub struct A(i32);
 
 #[derive(DerivingVia)]
-#[deriving(Arithmetic(via = i32), AsRef(via = i32))]
+#[deriving(From)]
 pub struct B(A);
 
-fn main() {
-    let _ = B(A(42)) + B(A(42));
-    let _ = B(A(42)) - B(A(42));
-    let _ = B(A(42)) * B(A(42));
-    let _ = B(A(42)) / B(A(42));
+#[derive(DerivingVia)]
+#[deriving(From, Add(via = i32), Display(via = i32))]
+#[transitive(i32 -> A -> B -> C)]
+pub struct C(B);
 
-    let v = B(A(42));
-    let _: &i32 = v.as_ref();
+#[derive(DerivingVia)]
+#[deriving(From, Display(via = T))]
+pub struct D<T: Display>(T);
+
+fn main() {
+    let c = C(B(A(42))) + C(B(A(42)));
+    println!("{c}");
+
+    let d = D("foo".to_owned());
+    println!("{d}");
 }

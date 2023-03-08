@@ -1,10 +1,29 @@
 use proc_macro2::TokenStream;
 use quote::quote;
+use syn::GenericParam;
 
 use crate::utils::extract_single_field;
 
 pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
+    let generics = {
+        let lt = &input.generics.lt_token;
+        let params = &input.generics.params;
+        let gt = &input.generics.gt_token;
+
+        quote! { #lt #params #gt }
+    };
+    let generic_params = {
+        let lt = &input.generics.lt_token;
+        let params = input.generics.params.iter().filter_map(|p| match p {
+            GenericParam::Type(ty) => Some(&ty.ident),
+            _ => None,
+        });
+        let gt = &input.generics.gt_token;
+
+        quote! { #lt #(#params),* #gt }
+    };
+    let where_clause = &input.generics.where_clause;
     let field = extract_single_field(input);
     let field_ident = &field.ident;
     let field_ty = &field.ty;
@@ -14,8 +33,8 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> Toke
             field_ident.as_ref().map_or_else(
                 || {
                     quote! {
-                        impl From<#struct_name> for #field_ty {
-                            fn from(__: #struct_name) -> Self {
+                        impl #generics From<#struct_name #generic_params> for #field_ty #where_clause {
+                            fn from(__: #struct_name #generic_params) -> Self {
                                 __.0
                             }
                         }
@@ -23,8 +42,8 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> Toke
                 },
                 |field_name| {
                     quote! {
-                        impl From<#struct_name> for #field_ty {
-                            fn from(__: #struct_name) -> Self {
+                        impl #generics From<#struct_name #generic_params> for #field_ty #where_clause {
+                            fn from(__: #struct_name #generic_params) -> Self {
                                 __. #field_name
                             }
                         }
@@ -34,9 +53,9 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> Toke
         },
         |via| {
             quote! {
-                impl From<#struct_name> for #via {
-                    fn from(__: #struct_name) -> Self {
-                        let de: &#via = &*__;
+                impl #generics From<#struct_name #generic_params> for #via #where_clause {
+                    fn from(__: #struct_name #generic_params) -> Self {
+                        let de: &#via = &__;
                         de.to_owned()
                     }
                 }

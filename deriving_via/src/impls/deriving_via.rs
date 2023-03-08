@@ -1,8 +1,12 @@
 use proc_macro2::TokenStream;
-use quote::ToTokens;
+use quote::{quote, ToTokens};
 use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, IntoStaticStr};
-use syn::parse2;
+use syn::{
+    parse::{Parse, ParseStream},
+    parse2,
+    punctuated::Punctuated,
+};
 
 mod add;
 mod arithmetic;
@@ -32,6 +36,22 @@ struct Derive {
 #[derive(Debug, Default)]
 struct DerivingAttributes(Vec<Derive>);
 
+struct Transitive {
+    #[allow(unused)]
+    paren_token: syn::token::Paren,
+    types: Punctuated<syn::Type, syn::Token![->]>,
+}
+
+impl Parse for Transitive {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let content;
+        Ok(Transitive {
+            paren_token: syn::parenthesized!(content in input),
+            types: content.parse_terminated(syn::Type::parse)?,
+        })
+    }
+}
+
 #[derive(EnumIter, IntoStaticStr, Clone, Copy)]
 #[strum(serialize_all = "PascalCase")]
 enum AvailableDerives {
@@ -54,7 +74,7 @@ enum AvailableDerives {
 }
 
 impl DerivingAttributes {
-    fn from_attributes(attributes: &[syn::Attribute]) -> syn::Result<Self> {
+    fn from_attribute(attribute: &syn::Attribute) -> syn::Result<Self> {
         #[derive(Debug)]
         enum Derive {
             Single(Single),
@@ -136,55 +156,69 @@ impl DerivingAttributes {
             }
         }
 
+        let expr: syn::Expr = parse2(attribute.tokens.to_owned()).unwrap();
+        use syn::Expr::{Paren, Tuple};
         Ok(Self(
-            attributes
-                .iter()
-                .filter_map(|attr| attr.path.is_ident("deriving").then_some(&attr.tokens))
-                .cloned()
-                .map(|tokens| -> syn::Result<Vec<_>> {
-                    let expr: syn::Expr = parse2(tokens).unwrap();
-                    use syn::Expr::{Paren, Tuple};
-                    match expr {
-                        Paren(expr) => try_parse(*expr.expr).map(|derive| vec![derive]),
-                        Tuple(items) => items.elems.into_iter().map(try_parse).collect(),
-                        expr => Err(syn::Error::new_spanned(expr, "expected: (<Item>, ...)")),
-                    }
-                })
-                .collect::<syn::Result<Vec<_>>>()?
-                .into_iter()
-                .flatten()
-                .collect(),
+            match expr {
+                Paren(expr) => try_parse(*expr.expr).map(|derive| vec![derive]),
+                Tuple(items) => items.elems.into_iter().map(try_parse).collect(),
+                expr => Err(syn::Error::new_spanned(expr, "expected: (<Item>, ...)")),
+            }?
+            .into_iter()
+            .collect(),
         ))
     }
 }
 
-pub(crate) fn impl_generalised_newtype_deriving(input: &syn::DeriveInput) -> TokenStream {
-    match DerivingAttributes::from_attributes(&input.attrs) {
-        Ok(attributes) => attributes.into_token_stream(input),
-        Err(err) => err.to_compile_error(),
+impl Transitive {
+    fn from_attribute(attr: &syn::Attribute) -> syn::Result<Self> {
+        parse2(attr.tokens.to_owned())
     }
+}
+
+pub(crate) fn impl_generalised_newtype_deriving(input: &syn::DeriveInput) -> TokenStream {
+    input
+        .attrs
+        .iter()
+        .map(|attr| {
+            if attr.path.is_ident("deriving") {
+                match DerivingAttributes::from_attribute(attr) {
+                    Ok(deriving) => deriving.into_token_stream(input),
+                    Err(err) => err.to_compile_error(),
+                }
+            } else if attr.path.is_ident("transitive") {
+                match Transitive::from_attribute(attr) {
+                    Ok(transitive) => transitive.into_token_stream(input),
+                    Err(err) => err.to_compile_error(),
+                }
+            } else {
+                syn::Error::new_spanned(attr, "unknown attribute").to_compile_error()
+            }
+        })
+        .collect()
 }
 
 fn extractor(
     target: AvailableDerives,
 ) -> impl FnOnce(&syn::DeriveInput, Option<&syn::Type>) -> TokenStream {
+    use AvailableDerives::*;
     match target {
-        AvailableDerives::Display => display::extract,
-        AvailableDerives::Into => into::extract,
-        AvailableDerives::From => from::extract,
-        AvailableDerives::PartialEq => partial_eq::extract,
-        AvailableDerives::Eq => eq::extract,
-        AvailableDerives::PartialOrd => partial_ord::extract,
-        AvailableDerives::Ord => ord::extract,
-        AvailableDerives::TryFrom => try_from::extract,
-        AvailableDerives::FromStr => from_str::extract,
-        AvailableDerives::Hash => hash::extract,
-        AvailableDerives::Serialize => serialize::extract,
-        AvailableDerives::Deserialize => deserialize::extract,
-        AvailableDerives::Add => add::extract,
-        AvailableDerives::Mul => mul::extract,
-        AvailableDerives::Arithmetic => arithmetic::extract,
-        AvailableDerives::AsRef => as_ref::extract,
+        Display => display::extract,
+        Into => into::extract,
+        From => from::extract,
+        PartialEq => partial_eq::extract,
+        Eq => eq::extract,
+        PartialOrd => partial_ord::extract,
+        Ord => ord::extract,
+        TryFrom => try_from::extract,
+        FromStr => from_str::extract,
+        Hash => hash::extract,
+        Serialize => serialize::extract,
+        Deserialize => deserialize::extract,
+        Add => add::extract,
+        Mul => mul::extract,
+        Arithmetic => arithmetic::extract,
+        AsRef => as_ref::extract,
     }
 }
 
@@ -210,5 +244,25 @@ impl DerivingAttributes {
             })
             .chain(std::iter::once_with(|| deref::extract(input)))
             .collect()
+    }
+}
+
+impl Transitive {
+    fn into_token_stream(self, _: &syn::DeriveInput) -> TokenStream {
+        if self.types.len() < 3 {
+            return syn::Error::new_spanned(self.types, "transitive must have three or more types")
+                .to_compile_error();
+        }
+        let from_type = self.types.first().unwrap();
+        let self_type = self.types.last().unwrap();
+        let types = &self.types.iter().collect::<Vec<_>>()[1..];
+        quote! {
+            impl From<#from_type> for #self_type {
+                fn from(__: #from_type) -> Self {
+                    #(let __: #types = __.into();)*
+                    __
+                }
+            }
+        }
     }
 }
