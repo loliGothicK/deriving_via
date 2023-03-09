@@ -11,6 +11,8 @@ mod display;
 #[cfg(test)]
 mod eq;
 #[cfg(test)]
+mod from;
+#[cfg(test)]
 mod mul;
 #[cfg(test)]
 mod serialize;

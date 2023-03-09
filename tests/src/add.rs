@@ -20,7 +20,7 @@ pub struct C(B);
 pub struct D<T: Add + Sub + Clone>(T);
 
 #[test]
-fn add() {
+fn test() {
     let _ = C(B(A(1))) + C(B(A(1)));
     let _ = C(B(A(1))) - C(B(A(1)));
     let _ = D(1) + D(1);

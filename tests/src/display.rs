@@ -17,7 +17,7 @@ pub struct C(B);
 pub struct D<T: Display>(T);
 
 #[test]
-fn mul() {
+fn test() {
     let c = C(B(A(1)));
     assert_eq!(c.to_string(), 1.to_string());
     let d = D(1);

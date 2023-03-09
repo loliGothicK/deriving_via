@@ -15,7 +15,7 @@ pub struct C(B);
 pub struct D<T: PartialEq + Eq>(T);
 
 #[test]
-fn mul() {
+fn test() {
     assert!(C(B(A(1))) == C(B(A(1))));
     assert!(D(1) == D(1));
 }

@@ -9,18 +9,18 @@ pub struct A(i32);
 pub struct B(A);
 
 #[derive(DerivingVia)]
-#[deriving(From, AsRef(via = i32))]
-#[transitive(i32 -> A -> B -> C)]
+#[deriving(From)]
 pub struct C(B);
 
 #[derive(DerivingVia)]
-#[deriving(From, AsRef(via = T))]
+#[deriving(From)]
 pub struct D<T>(T);
 
 #[test]
 fn test() {
-    let c = C(B(A(1)));
-    c.as_ref();
-    let d = D(1);
-    d.as_ref();
+    let a = A(1);
+    let b: B = From::from(a);
+    let c: C = From::from(b);
+
+    let _: D<C> = From::from(c);
 }

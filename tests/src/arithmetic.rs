@@ -20,7 +20,7 @@ pub struct C(B);
 pub struct D<T: Add + Sub + Mul + Div + Clone>(T);
 
 #[test]
-fn arithmetic() {
+fn test() {
     let _ = C(B(A(1))) + C(B(A(1)));
     let _ = C(B(A(1))) - C(B(A(1)));
     let _ = C(B(A(1))) * C(B(A(1)));

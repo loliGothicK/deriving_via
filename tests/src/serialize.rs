@@ -19,7 +19,7 @@ pub struct C(B);
 pub struct D<T: Serialize>(T);
 
 #[test]
-fn serialize() {
+fn test() {
     use serde_json::json;
 
     let c = C(B(A(1)));
