@@ -2,6 +2,8 @@
 
 This library is a slightly more convenient version of [`derive_more`](https://docs.rs/derive_more/latest/derive_more/) for newtype pattern.
 
+https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/deriving_via.html
+
 ## Basic Usage
 
 `#[derive(DerivingVia)]` and then write the `#[deriving]` attribute on struct and list the trait you want to derive in it.
