@@ -31,6 +31,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> Toke
             quote! {
                 impl #generics serde::Serialize for #struct_name #generic_params #where_clause {
                     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+                        use serde::Serializer;
                         self.#accessor.serialize(serializer)
                     }
                 }
@@ -40,6 +41,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> Toke
             quote! {
                 impl #generics serde::Serialize for #struct_name #generic_params #where_clause {
                     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+                        use serde::Serializer;
                         let de: &#via = self;
                         de.serialize(serializer)
                     }

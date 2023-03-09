@@ -29,7 +29,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> Toke
         .as_ref()
         .map(|wc| &wc.predicates);
     let generics_params = &input.generics.params;
-    let (_, _field_ty, constructor) = extract_fields(input);
+    let (_, field_ty, constructor) = extract_fields(input);
 
     via.map_or_else(
         || {
@@ -40,7 +40,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> Toke
                         D: Deserializer<'de>,
                         #predicates
                     {
-                        Ok(#constructor(field_ty::deserialize(deserializer)?.into()))
+                        Ok(#constructor(#field_ty::deserialize(deserializer)?.into()))
                     }
                 }
             }
@@ -53,7 +53,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> Toke
                         D: Deserializer<'de>,
                         #predicates
                     {
-                        Ok(constructor(#via::deserialize(deserializer)?.into()))
+                        Ok(#via::deserialize(deserializer)?.into())
                     }
                 }
             }

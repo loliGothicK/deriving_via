@@ -1,3 +1,5 @@
+use std::ops::{Add, Sub};
+
 use deriving_via::DerivingVia;
 
 #[derive(DerivingVia)]
@@ -13,7 +15,14 @@ pub struct B(A);
 #[transitive(i32 -> A -> B -> C)]
 pub struct C(B);
 
+#[derive(DerivingVia)]
+#[deriving(From, Add(via = T))]
+pub struct D<T: Add + Sub + Clone>(T);
+
 #[test]
 fn add() {
-    let _ = C(B(A(1))) + C(B(A(1))) + C(B(A(1)));
+    let _ = C(B(A(1))) + C(B(A(1)));
+    let _ = C(B(A(1))) - C(B(A(1)));
+    let _ = D(1) + D(1);
+    let _ = D(1) - D(1);
 }
