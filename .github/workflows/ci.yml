@@ -1,0 +1,123 @@
+name: Catch and Flow
+
+on: [ push, pull_request ]
+
+jobs:
+  rustfmt:
+    name: rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          components: rustfmt
+          override: true
+      - name: rustfmt check
+        run: cargo fmt --all -- --check --config-path=./.cargo-husky/hooks/rustfmt.toml
+
+  clippy:
+    name: clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: clippy
+          override: true
+      - uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --jobs=20 -- --deny warnings
+
+  test:
+    needs: [ rustfmt, clippy ]
+    name: "Test: { target: ${{ matrix.os }}, channel: ${{ matrix.rust }} }"
+    runs-on: ${{matrix.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        rust: [ stable ]
+        include:
+          - os: ubuntu-latest
+            target: unknown-linux-musl
+            sccache:
+              path: /home/runner/.cache/sccache
+            exe: ""
+          - os: macos-latest
+            target: apple-darwin
+            sccache:
+              path: /Users/runner/Library/Caches/Mozilla.sccache
+            exe: ""
+          - os: windows-latest
+            target: pc-windows-msvc
+            sccache:
+              path: /Users/runner/%LOCALAPPDATA%\Mozilla\sccache
+            exe: ".exe"
+
+    env:
+      RUST_BACKTRACE: full
+      RUSTV: ${{ matrix.rust }}
+      SCCACHE_CACHE_SIZE: 2G
+      SCCACHE_DIR: ${{ matrix.sccache-path }}
+      SCCACHE_VERSION: 0.3.0
+      # SCCACHE_RECACHE: 1 # Uncomment this to clear cache, then comment it back out
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Rust ${{ matrix.rust }}
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+          override: true
+
+      - name: Cache cargo registry
+        uses: actions/cache@v3
+        continue-on-error: false
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git            
+            ~/.cargo/registry/index/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Save sccache
+        id: restore-sccache
+        uses: actions/cache@v3
+        continue-on-error: false
+        with:
+          path: |
+            ${{ matrix.sccache.path }}
+            ~/.cargo/bin/sccache${{ matrix.exe }}
+          key: ${{ runner.os }}-sccache-${{ env.SCCACHE_VERSION }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-sccache-${{ env.SCCACHE_VERSION }}-
+
+      - if: ${{ steps.restore-sccache.outputs.cache-hit == false }}
+        name: Install sccache
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: --version=${{ env.SCCACHE_VERSION }} --force sccache
+
+      - name: Start sccache server
+        run: sccache --start-server
+
+      - name: Run tests
+        uses: actions-rs/cargo@v1
+        env:
+          RUSTC_WRAPPER: sccache
+        with:
+          command: test
+          args: --release --all-features
+
+      - name: Print sccache stats
+        run: sccache --show-stats
+      - name: Stop sccache server
+        run: sccache --stop-server || true
