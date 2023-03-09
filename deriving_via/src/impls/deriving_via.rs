@@ -176,7 +176,7 @@ impl Transitive {
     }
 }
 
-pub(crate) fn impl_generalised_newtype_deriving(input: &syn::DeriveInput) -> TokenStream {
+pub(crate) fn impl_deriving_via(input: &syn::DeriveInput) -> TokenStream {
     input
         .attrs
         .iter()
@@ -195,6 +195,7 @@ pub(crate) fn impl_generalised_newtype_deriving(input: &syn::DeriveInput) -> Tok
                 syn::Error::new_spanned(attr, "unknown attribute").to_compile_error()
             }
         })
+        .chain(std::iter::once_with(|| deref::extract(input)))
         .collect()
 }
 
@@ -242,7 +243,6 @@ impl DerivingAttributes {
                             .to_compile_error()
                     })
             })
-            .chain(std::iter::once_with(|| deref::extract(input)))
             .collect()
     }
 }

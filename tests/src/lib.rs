@@ -7,6 +7,8 @@ mod as_ref;
 #[cfg(test)]
 mod deserialize;
 #[cfg(test)]
+mod display;
+#[cfg(test)]
 mod mul;
 #[cfg(test)]
 mod serialize;
