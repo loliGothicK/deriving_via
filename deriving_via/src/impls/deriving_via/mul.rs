@@ -1,5 +1,6 @@
+use itertools::Itertools;
 use proc_macro2::TokenStream;
-use quote::quote;
+use quote::{quote, ToTokens};
 use syn::GenericParam;
 
 use crate::utils::extract_fields;
@@ -46,8 +47,49 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> Toke
             }
         },
         |via| {
+            let where_clause_for_mul = where_clause.as_ref().map_or_else(
+                || {
+                    quote! {
+                        where
+                            Self: std::convert::From<<#via as std::ops::Mul>::Output>,
+                    }
+                },
+                |where_clause| {
+                    quote! {
+                        #where_clause
+                            Self: std::convert::From<<#via as std::ops::Mul>::Output>,
+                    }
+                },
+            );
+            let where_clause_for_div = where_clause.as_ref().map_or_else(
+                || {
+                    quote! {
+                        where
+                            Self: std::convert::From<<#via as std::ops::Div>::Output>,
+                    }
+                },
+                |where_clause| {
+                    quote! {
+                        #where_clause
+                            Self: std::convert::From<<#via as std::ops::Div>::Output>,
+                    }
+                },
+            );
+            let (where_clause_for_mul, where_clause_for_div) = if input.generics.params.iter().filter_map(|param| {
+                match param {
+                    GenericParam::Type(ty) => Some(ty.ident.to_string()),
+                    _ => None,
+                }
+            })
+                .collect_vec()
+                .contains(&format!("{}", via.to_token_stream())) {
+                (quote! { #where_clause_for_mul #via: Clone, }, quote! { #where_clause_for_div #via: Clone, })
+            } else {
+                (where_clause_for_mul, where_clause_for_div)
+            };
+
             quote! {
-                impl #generics std::ops::Mul for #struct_name #generic_params #where_clause {
+                impl #generics std::ops::Mul for #struct_name #generic_params #where_clause_for_mul {
                     type Output = Self;
 
                     fn mul(self, other: Self) -> Self {
@@ -56,7 +98,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> Toke
                         (lhs.to_owned() * rhs.to_owned()).into()
                     }
                 }
-                impl #generics std::ops::Div for #struct_name #generic_params #where_clause {
+                impl #generics std::ops::Div for #struct_name #generic_params #where_clause_for_div {
                     type Output = Self;
 
                     fn div(self, other: Self) -> Self {
