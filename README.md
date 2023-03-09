@@ -1,6 +1,39 @@
 # deriving_via
 
-This library is a slightly more convenient version of [`derive_more`](https://docs.rs/derive_more/latest/derive_more/).
+This library is a slightly more convenient version of [`derive_more`](https://docs.rs/derive_more/latest/derive_more/) for newtype pattern.
+
+## Basic Usage
+
+`#[derive(DerivingVia)]` and then write the `#[deriving]` attribute on struct and list the trait you want to derive in it.
+
+### simple
+
+Derives `From<i32> for D` and `Display for D`.
+
+```rust
+#[derive(DerivingVia)]
+#[deriving(From, Display)]
+pub struct D(i32);
+```
+
+### with generics
+
+```rust
+#[derive(DerivingVia)]
+#[deriving(From, Display)]
+pub struct D<T: Display>(T);
+```
+
+### with newtype pattern
+
+If you have more than one field, specify `#[underlying]` for one.
+Note that the other fields require default initialisation by the `Default` trait.
+
+```rust
+#[derive(DerivingVia)]
+#[deriving(From, Display)]
+pub struct Test<T>(#[underlying] i32, std::marker::PhantomData<T>);
+```
 
 ## Syntax
 
@@ -18,18 +51,41 @@ The syntax of `<Derive>` is defined as follows.
 Derive := <Trait> | <Trait>(via = <Type>)
 ```
 
-## How DerivingVia works
+## Deriving Via
+
+Using the deriving via feature, it is possible to generate derives from the impl of a base of a multi-layered wrapped type.
 
 `DerivingVia` uses transitive type coercion for type conversion.
 All newtypes must be dereferenceable to the underlying type.
-
 Therefore, `DerivingVia` automatically generates a `Deref` trait.
+
+### Example
+
+```rust
+use deriving_via::DerivingVia;
+
+#[derive(DerivingVia)]
+pub struct A(i32);
+
+#[derive(DerivingVia)]
+pub struct B(A);
+
+#[derive(DerivingVia)]
+#[deriving(Display(via = i32))]
+pub struct C(B);
+
+fn main() {
+  let c = C(B(A(42)));
+  println!("{c}"); // 42
+}
+```
 
 `Deref` trait works transitive, but how we re-constructs a `Self` type?
 Unfortunately, no convenience mechanism exists in the language,
 so it is necessary to teach how to revert using the `#[transitive]` attribute.
+Some trait require `#[transitive]` attribute (see Available Derives section).
 
-## Example
+### Example
 
 ```rust
 use std::fmt::Display;
@@ -49,16 +105,9 @@ pub struct B(A);
 #[transitive(i32 -> A -> B -> C)]
 pub struct C(B);
 
-#[derive(DerivingVia)]
-#[deriving(From, Display(via = T))]
-pub struct D<T: Display>(T);
-
 fn main() {
   let c = C(B(A(42))) + C(B(A(42)));
   println!("{c}");
-
-  let d = D("foo".to_owned());
-  println!("{d}");
 }
 ```
 
