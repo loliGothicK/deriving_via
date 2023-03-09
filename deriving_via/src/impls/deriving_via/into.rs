@@ -29,8 +29,8 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> Toke
     via.map_or_else(
         || {
             quote! {
-                impl #generics From<#struct_name #generic_params> for #field_ty #where_clause {
-                    fn from(__: #struct_name #generic_params) -> Self {
+                impl #generics ::core::convert::From<#struct_name #generic_params> for #field_ty #where_clause {
+                    fn from(__: #struct_name #generic_params) -> #field_ty {
                         __.#accessor
                     }
                 }
@@ -38,8 +38,8 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> Toke
         },
         |via| {
             quote! {
-                impl #generics From<#struct_name #generic_params> for #via #where_clause {
-                    fn from(__: #struct_name #generic_params) -> Self {
+                impl #generics ::core::convert::From<#struct_name #generic_params> for #via #where_clause {
+                    fn from(__: #struct_name #generic_params) -> #via {
                         let de: &#via = &__;
                         de.to_owned()
                     }
