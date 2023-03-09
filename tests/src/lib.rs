@@ -15,6 +15,8 @@ mod from;
 #[cfg(test)]
 mod from_str;
 #[cfg(test)]
+mod hash;
+#[cfg(test)]
 mod mul;
 #[cfg(test)]
 mod serialize;
