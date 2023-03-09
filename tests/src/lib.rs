@@ -9,6 +9,8 @@ mod deserialize;
 #[cfg(test)]
 mod display;
 #[cfg(test)]
+mod eq;
+#[cfg(test)]
 mod mul;
 #[cfg(test)]
 mod serialize;
