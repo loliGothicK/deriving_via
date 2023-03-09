@@ -154,6 +154,6 @@ struct Target(Base);
 ## Caveat
 
 DerivingVia using transitive case of _Type Coercion_.
-Note that this is not fully supported yet.
+According to rumours, transitive _Type Coercion_ is not fully supported yet.
 
 See: https://doc.rust-lang.org/reference/type-coercions.html#coercion-types
