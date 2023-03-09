@@ -6,6 +6,7 @@ __CARGO_FIX_YOLO=1
 REPOSITORY_ROOT = { script = ["git rev-parse --show-superproject-working-tree --show-toplevel"] }
 
 [tasks.fix]
+toolchain = "nightly"
 command = "cargo"
 args = [ "clippy", "--fix", "--allow-dirty", "--allow-staged" ]
 
@@ -15,6 +16,7 @@ command = "cargo"
 args = [ "nextest", "run" ]
 
 [tasks.lint]
+toolchain = "nightly"
 command = "cargo"
 args = [ "clippy", "--", "-D", "warnings" ]
 

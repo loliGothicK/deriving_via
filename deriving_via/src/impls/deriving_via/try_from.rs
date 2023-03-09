@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::GenericParam;
 
-use crate::utils::extract_single_field;
+use crate::utils::extract_fields;
 
 pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
@@ -24,37 +24,19 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> Toke
         quote! { #lt #(#params),* #gt }
     };
     let where_clause = &input.generics.where_clause;
-    let field = extract_single_field(input);
-
-    let field_ident = &field.ident;
-    let field_ty = &field.ty;
+    let (_, field_ty, constructor) = extract_fields(input);
 
     via.map_or_else(
         || {
-            field_ident.as_ref().map_or_else(
-                || {
-                    quote! {
-                        impl #generics std::convert::TryFrom<#field_ty> for #struct_name #generic_params #where_clause {
-                            type Error = <#field_ty as std::str::TryFrom>::Error;
+            quote! {
+                impl #generics std::convert::TryFrom<#field_ty> for #struct_name #generic_params #where_clause {
+                    type Error = <#field_ty as std::str::TryFrom>::Error;
 
-                            fn try_from(__: #field_ty) -> std::result::Result<Self, Self::Error> {
-                                Ok(Self(__.try_into()?))
-                            }
-                        }
+                    fn try_from(__: #field_ty) -> std::result::Result<Self, Self::Error> {
+                        Ok(#constructor(__.try_into()?))
                     }
-                },
-                |field_name| {
-                    quote! {
-                        impl #generics std::convert::TryFrom<#field_ty> for #struct_name #generic_params #where_clause {
-                            type Error = <#field_ty as std::str::TryFrom>::Error;
-
-                            fn try_from(__: #field_ty) -> std::result::Result<Self, Self::Error> {
-                                Ok(Self { #field_name: __.try_into()? })
-                            }
-                        }
-                    }
-                },
-            )
+                }
+            }
         },
         |via| {
             quote! {

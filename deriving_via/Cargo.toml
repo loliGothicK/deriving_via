@@ -18,6 +18,7 @@ syn = { version = "1.0.109", features = ["full"] }
 typed-builder = "0.13.0"
 strum = "0.24.1"
 strum_macros = "0.24.3"
+itertools = "0.10.5"
 
 [dev-dependencies.cargo-husky]
 version = "1"

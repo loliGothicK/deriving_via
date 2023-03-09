@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::GenericParam;
 
-use crate::utils::extract_single_field;
+use crate::utils::extract_fields;
 
 pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
@@ -24,31 +24,17 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> Toke
         quote! { #lt #(#params),* #gt }
     };
     let where_clause = &input.generics.where_clause;
-    let field = extract_single_field(input);
-    let field = &field.ident;
+    let (accessor, ..) = extract_fields(input);
 
     via.map_or_else(
         || {
-            field.as_ref().map_or_else(
-                || {
-                    quote! {
-                        impl #generics serde::Serialize for #struct_name #generic_params #where_clause {
-                            fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-                                self.0.serialize(serializer)
-                            }
-                        }
+            quote! {
+                impl #generics serde::Serialize for #struct_name #generic_params #where_clause {
+                    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+                        self.#accessor.serialize(serializer)
                     }
-                },
-                |field_name| {
-                    quote! {
-                        impl #generics serde::Serialize for #struct_name #generic_params #where_clause {
-                            fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-                                self.#field_name.serialize(serializer)
-                            }
-                        }
-                    }
-                },
-            )
+                }
+            }
         },
         |via| {
             quote! {

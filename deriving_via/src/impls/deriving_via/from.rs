@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::GenericParam;
 
-use crate::utils::extract_single_field;
+use crate::utils::extract_fields;
 
 pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
@@ -24,54 +24,26 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> Toke
         quote! { #lt #(#params),* #gt }
     };
     let where_clause = &input.generics.where_clause;
-    let field = extract_single_field(input);
-    let field_ident = &field.ident;
-    let field_ty = &field.ty;
+    let (_, field_ty, constructor) = extract_fields(input);
 
     via.map_or_else(
         || {
-            field_ident.as_ref().map_or_else(
-                || {
-                    quote! {
-                        impl #generics From<#field_ty> for #struct_name #generic_params #where_clause {
-                            fn from(__: #field_ty) -> Self {
-                                Self(__)
-                            }
-                        }
+            quote! {
+                impl #generics From<#field_ty> for #struct_name #generic_params #where_clause {
+                    fn from(__: #field_ty) -> Self {
+                        #constructor(__)
                     }
-                },
-                |field_name| {
-                    quote! {
-                        impl #generics From<#field_ty> for #struct_name #generic_params #where_clause {
-                            fn from(#field_name: #field_ty) -> Self {
-                                Self{ #field_name }
-                            }
-                        }
-                    }
-                },
-            )
+                }
+            }
         },
         |via| {
-            field_ident.as_ref().map_or_else(
-                || {
-                    quote! {
-                        impl #generics From<#via> for #struct_name #generic_params #where_clause {
-                            fn from(__: #via) -> Self {
-                                Self(__.into())
-                            }
-                        }
+            quote! {
+                impl #generics From<#via> for #struct_name #generic_params #where_clause {
+                    fn from(__: #via) -> Self {
+                        __.into()
                     }
-                },
-                |field_name| {
-                    quote! {
-                        impl #generics From<#via> for #struct_name #generic_params #where_clause {
-                            fn from(__: #via) -> Self {
-                                Self{ #field_name: __.into() }
-                            }
-                        }
-                    }
-                },
-            )
+                }
+            }
         },
     )
 }

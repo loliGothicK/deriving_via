@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::GenericParam;
 
-use crate::utils::extract_single_field;
+use crate::utils::extract_fields;
 
 pub(crate) fn extract(input: &syn::DeriveInput) -> TokenStream {
     let struct_name = &input.ident;
@@ -24,32 +24,15 @@ pub(crate) fn extract(input: &syn::DeriveInput) -> TokenStream {
         quote! { #lt #(#params),* #gt }
     };
     let where_clause = &input.generics.where_clause;
-    let field = extract_single_field(input);
-    let field_ident = &field.ident;
-    let field_ty = &field.ty;
+    let (accessor, ty, _) = extract_fields(input);
 
-    field_ident.as_ref().map_or_else(
-        || {
-            quote! {
-                impl #generics std::ops::Deref for #struct_name #generic_params #where_clause {
-                    type Target = #field_ty;
+    quote! {
+        impl #generics std::ops::Deref for #struct_name #generic_params #where_clause {
+            type Target = #ty;
 
-                    fn deref(&self) -> &Self::Target {
-                        &self.0
-                    }
-                }
+            fn deref(&self) -> &Self::Target {
+                &self.#accessor
             }
-        },
-        |field_name| {
-            quote! {
-                impl #generics std::ops::Deref for #struct_name #generic_params #where_clause {
-                    type Target = #field_ty;
-
-                    fn deref(&self) -> &Self::Target {
-                        &self. #field_name
-                    }
-                }
-            }
-        },
-    )
+        }
+    }
 }

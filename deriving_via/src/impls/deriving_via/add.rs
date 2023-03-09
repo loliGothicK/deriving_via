@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::GenericParam;
 
-use crate::utils::extract_single_field;
+use crate::utils::extract_fields;
 
 pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
@@ -24,53 +24,26 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> Toke
         quote! { #lt #(#params),* #gt }
     };
     let where_clause = &input.generics.where_clause;
-    let field = extract_single_field(input);
-    let field = &field.ident;
+    let (accessor, _, constructor) = extract_fields(input);
 
     via.map_or_else(
         || {
-            field.as_ref().map_or_else(
-                || {
-                    quote! {
-                        impl #generics std::ops::Add for #struct_name #generic_params #where_clause {
-                            type Output = Self;
+            quote! {
+                impl #generics std::ops::Add for #struct_name #generic_params #where_clause {
+                    type Output = Self;
 
-                            fn add(self, other: Self) -> Self {
-                                Self((self.0 + other.0).into())
-                            }
-                        }
-                        impl #generics std::ops::Sub for #struct_name #generic_params #where_clause {
-                            type Output = Self;
-
-                            fn sub(self, other: Self) -> Self {
-                                Self((self.0 - other.0).into())
-                            }
-                        }
+                    fn add(self, other: Self) -> Self {
+                        #constructor((self.#accessor + other.#accessor).into())
                     }
-                },
-                |field_name| {
-                    quote! {
-                        impl #generics std::ops::Add for #struct_name #generic_params #where_clause {
-                            type Output = Self;
+                }
+                impl #generics std::ops::Sub for #struct_name #generic_params #where_clause {
+                    type Output = Self;
 
-                            fn add(self, other: Self) -> Self {
-                                Self {
-                                    #field_name: (self.#field_name + other.#field_name).into()
-                                }
-                            }
-                        }
-                        impl #generics std::ops::Sub for #struct_name #generic_params #where_clause {
-                            type Output = Self;
-
-                            fn sub(self, other: Self) -> Self {
-                                Self {
-                                    #field_name: (self.#field_name - other.#field_name).into()
-                                }
-                            }
-                        }
+                    fn sub(self, other: Self) -> Self {
+                        #constructor((self.#accessor + other.#accessor).into())
                     }
-                },
-            )
+                }
+            }
         },
         |via| {
             quote! {

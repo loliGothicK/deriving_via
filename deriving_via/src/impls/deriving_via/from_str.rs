@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::GenericParam;
 
-use crate::utils::extract_single_field;
+use crate::utils::extract_fields;
 
 pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
@@ -24,36 +24,20 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> Toke
         quote! { #lt #(#params),* #gt }
     };
     let where_clause = &input.generics.where_clause;
-    let field = extract_single_field(input);
+    let (_, field_ty, constructor) = extract_fields(input);
 
-    let field_name = &field.ident;
-    let field_ty = &field.ty;
+    match via.unwrap_or(&field_ty) {
+        syn::Type::Path(path) if path.path.is_ident("String") => {
+            quote! {
+                impl #generics std::str::FromStr for #struct_name #generic_params #where_clause {
+                    type Err = std::convert::Infallible;
 
-    match via.unwrap_or(field_ty) {
-        syn::Type::Path(path) if path.path.is_ident("String") => field_name
-            .as_ref()
-            .map(|field_name| {
-                quote! {
-                    impl #generics std::str::FromStr for #struct_name #generic_params #where_clause {
-                        type Err = std::convert::Infallible;
-
-                        fn from_str(__: &str) -> std::result::Result<Self, Self::Err> {
-                            Ok(Self { #field_name: __.to_owned() })
-                        }
+                    fn from_str(__: &str) -> std::result::Result<Self, Self::Err> {
+                        #constructor(__.to_owned())
                     }
                 }
-            })
-            .unwrap_or_else(|| {
-                quote! {
-                    impl #generics std::str::FromStr for #struct_name #generic_params #where_clause {
-                        type Err = std::convert::Infallible;
-
-                        fn from_str(__: &str) -> std::result::Result<Self, Self::Err> {
-                            Ok(Self(__.to_owned()))
-                        }
-                    }
-                }
-            }),
+            }
+        }
         ty => {
             quote! {
                 impl #generics std::str::FromStr for #struct_name #generic_params #where_clause {

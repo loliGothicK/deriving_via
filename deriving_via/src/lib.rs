@@ -48,8 +48,10 @@ mod utils;
 extern crate proc_macro;
 #[allow(unused)]
 use proc_macro::TokenStream;
+use proc_macro_error::proc_macro_error;
 
-#[proc_macro_derive(DerivingVia, attributes(deriving, transitive, underlying, phantom))]
+#[proc_macro_error]
+#[proc_macro_derive(DerivingVia, attributes(deriving, transitive, underlying))]
 pub fn derive_generalised_newtype_deriving(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
     impls::deriving_via::impl_generalised_newtype_deriving(&ast).into()

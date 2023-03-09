@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::GenericParam;
 
-use crate::utils::extract_single_field;
+use crate::utils::extract_fields;
 
 pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
@@ -29,74 +29,34 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> Toke
         .as_ref()
         .map(|wc| &wc.predicates);
     let generics_params = &input.generics.params;
-    let field = extract_single_field(input);
-    let field_ty = &field.ty;
-    let field = &field.ident;
+    let (_, _field_ty, constructor) = extract_fields(input);
 
     via.map_or_else(
         || {
-            field.as_ref().map_or_else(
-                || {
-                    quote! {
-                        impl<'de, #generics_params> serde::Deserialize<'de> for #struct_name #generic_params {
-                            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-                            where
-                                D: Deserializer<'de>,
-                                #predicates
-                            {
-                                Ok(#struct_name(field_ty::deserialize(deserializer)?.into()))
-                            }
-                        }
+            quote! {
+                impl<'de, #generics_params> serde::Deserialize<'de> for #struct_name #generic_params {
+                    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+                    where
+                        D: Deserializer<'de>,
+                        #predicates
+                    {
+                        Ok(#constructor(field_ty::deserialize(deserializer)?.into()))
                     }
-                },
-                |field_name| {
-                    quote! {
-                        impl<'de, #generics_params> serde::Deserialize<'de> for #struct_name #generic_params {
-                            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-                            where
-                                D: Deserializer<'de>,
-                                #predicates
-                            {
-                                Ok(#struct_name {
-                                    #field_name: #field_ty::deserialize(deserializer)?.into()
-                                })
-                            }
-                        }
-                    }
-                },
-            )
+                }
+            }
         },
         |via| {
-            field.as_ref().map_or_else(
-                || {
-                    quote! {
-                        impl<'de, #generics_params> serde::Deserialize<'de> for #struct_name #generic_params {
-                            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-                            where
-                                D: Deserializer<'de>,
-                                #predicates
-                            {
-                                Ok(#struct_name(#via::deserialize(deserializer)?.into()))
-                            }
-                        }
+            quote! {
+                impl<'de, #generics_params> serde::Deserialize<'de> for #struct_name #generic_params {
+                    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+                    where
+                        D: Deserializer<'de>,
+                        #predicates
+                    {
+                        Ok(constructor(#via::deserialize(deserializer)?.into()))
                     }
-                },
-                |field_name| {
-                    quote! {
-                        impl<'de, #generics_params> serde::Deserialize<'de> for #struct_name #generic_params {
-                            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-                            where
-                                D: Deserializer<'de>,
-                                #predicates
-                            {
-                                Ok(#struct_name {
-                                    #field_name: #via::deserialize(deserializer)?.into()
-                                })
-                            }
-                        }
-                    }
-                },
-            )
+                }
+            }
         },
     )
 }
