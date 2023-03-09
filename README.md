@@ -2,7 +2,7 @@
 
 This library is a slightly more convenient version of [`derive_more`](https://docs.rs/derive_more/latest/derive_more/) for newtype pattern.
 
-https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/deriving_via.html
+=> [Deriving via](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/deriving_via.html)
 
 ## Basic Usage
 

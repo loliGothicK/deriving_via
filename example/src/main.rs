@@ -20,7 +20,7 @@ pub struct C(B);
 pub struct D<T: Display>(T);
 
 #[derive(DerivingVia)]
-#[deriving(Display(via = i32))]
+#[deriving(Display(via = i32), Into)]
 pub struct Test<T>(#[underlying] i32, std::marker::PhantomData<T>);
 
 fn main() {
@@ -32,4 +32,6 @@ fn main() {
 
     let test = Test::<i32>(42, Default::default());
     println!("{test}");
+
+    let _: i32 = test.into();
 }
