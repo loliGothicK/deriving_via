@@ -16,7 +16,7 @@ jobs:
       - uses: mbrobbel/rustfmt-check@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --config-path=./.cargo-husky/hooks/rustfmt.toml
+          args: --all -- --config-path=./.cargo-husky/hooks/rustfmt.toml
 
   clippy:
     name: clippy check
