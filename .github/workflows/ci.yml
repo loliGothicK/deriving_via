@@ -8,11 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@v1
-        with:
-          toolchain: nightly
-          components: rustfmt
-          override: true
+      - uses: dtolnay/rust-toolchain@nightly
       - uses: mbrobbel/rustfmt-check@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -23,11 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
-          components: clippy
-          override: true
+      - uses: actions-rs/toolchain@nightly
       - uses: LoliGothick/clippy-check@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
