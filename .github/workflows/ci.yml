@@ -7,19 +7,28 @@ jobs:
     name: rustfmt check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@nightly
-      - uses: mbrobbel/rustfmt-check@master
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          components: rustfmt
+          override: true
+      - uses: LoliGothick/rustfmt-check@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all -- --config-path=./.cargo-husky/hooks/rustfmt.toml
+          flags: --all
+          args: --config-path=./.cargo-husky/hooks/rustfmt.toml
 
   clippy:
     name: clippy check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@nightly
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          components: clippy
+          override: true
       - uses: LoliGothick/clippy-check@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
