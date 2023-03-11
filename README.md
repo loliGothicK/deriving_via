@@ -1,3 +1,8 @@
+[![Matrix Test](https://github.com/LoliGothick/deriving_via/actions/workflows/ci.yml/badge.svg)](https://github.com/LoliGothick/deriving_via/actions/workflows/ci.yml)
+[![crate-name at crates.io](https://img.shields.io/crates/v/deriving_via.svg)](https://crates.io/crates/deriving_via)
+[![crate-name at docs.rs](https://docs.rs/deriving_via/badge.svg)](https://docs.rs/deriving_via)
+------------------------
+
 # deriving_via
 
 This library is a slightly more convenient version of [`derive_more`](https://docs.rs/derive_more/latest/derive_more/) for newtype pattern.
