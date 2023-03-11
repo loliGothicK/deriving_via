@@ -1,5 +1,5 @@
 use deriving_via::DerivingVia;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 
 #[derive(DerivingVia)]
 #[deriving(From, Serialize, Deserialize)]

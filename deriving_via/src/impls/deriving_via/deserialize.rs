@@ -37,7 +37,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> Toke
                 impl<'de, #generics_params> serde::Deserialize<'de> for #struct_name #generic_params {
                     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
                     where
-                        D: Deserializer<'de>,
+                        D: serde::Deserializer<'de>,
                         #predicates
                     {
                         Ok(#constructor(#field_ty::deserialize(deserializer)?.into()))
@@ -50,7 +50,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> Toke
                 impl<'de, #generics_params> serde::Deserialize<'de> for #struct_name #generic_params {
                     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
                     where
-                        D: Deserializer<'de>,
+                        D: serde::Deserializer<'de>,
                         #predicates
                     {
                         Ok(#via::deserialize(deserializer)?.into())

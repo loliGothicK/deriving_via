@@ -65,7 +65,7 @@ pub(crate) fn extract_fields(ast: &syn::DeriveInput) -> (Accessor, UnderlyingTyp
                     });
                 (accessor, field.ty.to_owned(), constructor)
             } else {
-                match fields.iter().enumerate().find(|(_idx, field)| {
+                match fields.iter().enumerate().find(|(_, field)| {
                     field
                         .attrs
                         .iter()
@@ -88,7 +88,7 @@ pub(crate) fn extract_fields(ast: &syn::DeriveInput) -> (Accessor, UnderlyingTyp
                         let defaults = fields
                             .iter()
                             .enumerate()
-                            .filter(|(_idx, field)| field == &underlying)
+                            .filter(|(_idx, field)| field != &underlying)
                             .map(|(idx, field)| {
                                 field.ident.as_ref().map_or_else(
                                     || {

@@ -33,7 +33,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> Toke
                     type Err = std::convert::Infallible;
 
                     fn from_str(__: &str) -> std::result::Result<Self, Self::Err> {
-                        #constructor(__.to_owned())
+                        Ok(#constructor(__.to_owned()))
                     }
                 }
             }
