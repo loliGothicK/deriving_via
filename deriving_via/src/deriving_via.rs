@@ -9,25 +9,10 @@ use syn::{
     punctuated::Punctuated,
 };
 
-mod add;
-mod arithmetic;
-mod as_ref;
-mod deref;
-mod deserialize;
-mod display;
-mod eq;
-mod from;
-mod from_iterator;
-mod from_str;
-mod hash;
-mod index;
-mod into;
-mod mul;
-mod ord;
-mod partial_eq;
-mod partial_ord;
-mod serialize;
-mod try_from;
+use crate::deriving_via::derive::*;
+
+mod derive;
+pub(crate) mod utils;
 
 #[derive(EnumIter, IntoStaticStr, Clone, Copy)]
 #[strum(serialize_all = "PascalCase")]

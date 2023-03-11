@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::GenericParam;
 
-use crate::utils::extract_fields;
+use super::super::utils::extract_fields;
 
 pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
@@ -24,25 +24,28 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
         quote! { #lt #(#params),* #gt }
     };
     let where_clause = &input.generics.where_clause;
-    let (accessor, ..) = extract_fields(input);
+    let (_, field_ty, constructor) = extract_fields(input);
 
     via.as_ref().map_or_else(
         || {
             quote! {
-                impl #generics PartialOrd for #struct_name #generic_params #where_clause {
-                    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-                        self.#accessor.partial_cmp(&other.#accessor)
+                impl #generics std::convert::TryFrom<#field_ty> for #struct_name #generic_params #where_clause {
+                    type Error = <#field_ty as std::str::TryFrom>::Error;
+
+                    fn try_from(__: #field_ty) -> std::result::Result<Self, Self::Error> {
+                        Ok(#constructor(__.try_into()?))
                     }
                 }
             }
         },
         |via| {
             quote! {
-                impl #generics PartialOrd for #struct_name #generic_params #where_clause {
-                    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-                        let left: &#via = self;
-                        let right: &#via = other;
-                        left.partial_cmp(right)
+                impl #generics std::convert::TryFrom<#field_ty> for #struct_name #generic_params #where_clause {
+                    type Error = <#via as std::str::TryFrom>::Error;
+
+                    fn try_from(__: #field_ty) -> std::result::Result<Self, Self::Error> {
+                        let intermediate: #via = __.try_into()?;
+                        Ok(intermediate.into())
                     }
                 }
             }

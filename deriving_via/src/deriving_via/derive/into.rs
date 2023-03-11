@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::GenericParam;
 
-use crate::utils::extract_fields;
+use super::super::utils::extract_fields;
 
 pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
@@ -24,28 +24,25 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
         quote! { #lt #(#params),* #gt }
     };
     let where_clause = &input.generics.where_clause;
-    let (_, field_ty, constructor) = extract_fields(input);
+    let (accessor, field_ty, _) = extract_fields(input);
 
     via.as_ref().map_or_else(
         || {
             quote! {
-                impl #generics std::convert::TryFrom<#field_ty> for #struct_name #generic_params #where_clause {
-                    type Error = <#field_ty as std::str::TryFrom>::Error;
-
-                    fn try_from(__: #field_ty) -> std::result::Result<Self, Self::Error> {
-                        Ok(#constructor(__.try_into()?))
+                impl #generics ::core::convert::From<#struct_name #generic_params> for #field_ty #where_clause {
+                    fn from(__: #struct_name #generic_params) -> #field_ty {
+                        __.#accessor
                     }
                 }
             }
         },
         |via| {
+            // TODO: abort if violates the Orphan Rule
             quote! {
-                impl #generics std::convert::TryFrom<#field_ty> for #struct_name #generic_params #where_clause {
-                    type Error = <#via as std::str::TryFrom>::Error;
-
-                    fn try_from(__: #field_ty) -> std::result::Result<Self, Self::Error> {
-                        let intermediate: #via = __.try_into()?;
-                        Ok(intermediate.into())
+                impl #generics ::core::convert::From<#struct_name #generic_params> for #via #where_clause {
+                    fn from(__: #struct_name #generic_params) -> #via {
+                        let de: &#via = &__;
+                        de.to_owned()
                     }
                 }
             }

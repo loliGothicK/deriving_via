@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::GenericParam;
 
-use crate::utils::extract_fields;
+use super::super::utils::extract_fields;
 
 pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
@@ -24,31 +24,31 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
         quote! { #lt #(#params),* #gt }
     };
     let where_clause = &input.generics.where_clause;
-    let (_, field_ty, constructor) = extract_fields(input);
+    let (accessor, ..) = extract_fields(input);
 
-    match via.as_ref().unwrap_or(&field_ty) {
-        syn::Type::Path(path) if path.path.is_ident("String") => {
+    via.as_ref().map_or_else(
+        || {
             quote! {
-                impl #generics std::str::FromStr for #struct_name #generic_params #where_clause {
-                    type Err = std::convert::Infallible;
-
-                    fn from_str(__: &str) -> std::result::Result<Self, Self::Err> {
-                        Ok(#constructor(__.to_owned()))
+                impl #generics ::core::fmt::Display for #struct_name #generic_params
+                    #where_clause
+                {
+                    fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                        write!(f, "{}", &self. #accessor)
                     }
                 }
             }
-        }
-        ty => {
+        },
+        |via| {
             quote! {
-                impl #generics std::str::FromStr for #struct_name #generic_params #where_clause {
-                    type Err = <#ty as std::str::FromStr>::Err;
-
-                    fn from_str(__: &str) -> std::result::Result<Self, Self::Err> {
-                        let intermediate: #ty = __.parse()?;
-                        Ok(intermediate.into())
+                impl #generics ::core::fmt::Display for #struct_name #generic_params
+                    #where_clause
+                {
+                    fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                        let de: &#via = self;
+                        write!(f, "{}", de)
                     }
                 }
             }
-        }
-    }
+        },
+    )
 }

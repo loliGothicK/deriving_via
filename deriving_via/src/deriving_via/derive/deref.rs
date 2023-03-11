@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::GenericParam;
 
-use crate::utils::extract_fields;
+use super::super::utils::extract_fields;
 
 pub(crate) fn extract(input: &syn::DeriveInput) -> TokenStream {
     let struct_name = &input.ident;

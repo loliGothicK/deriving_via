@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::GenericParam;
 
-use crate::utils::extract_fields;
+use super::super::utils::extract_fields;
 
 pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
@@ -24,23 +24,25 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
         quote! { #lt #(#params),* #gt }
     };
     let where_clause = &input.generics.where_clause;
-    let (_, field_ty, constructor) = extract_fields(input);
+    let (accessor, ..) = extract_fields(input);
 
     via.as_ref().map_or_else(
         || {
             quote! {
-                impl #generics From<#field_ty> for #struct_name #generic_params #where_clause {
-                    fn from(__: #field_ty) -> Self {
-                        #constructor(__)
+                impl #generics std::cmp::PartialEq for #struct_name #generic_params #where_clause {
+                    fn eq(&self, other: &Self) -> bool {
+                        self.#accessor.eq(&other.#accessor)
                     }
                 }
             }
         },
         |via| {
             quote! {
-                impl #generics From<#via> for #struct_name #generic_params #where_clause {
-                    fn from(__: #via) -> Self {
-                        __.into()
+                impl #generics std::cmp::PartialEq for #struct_name #generic_params #where_clause {
+                    fn eq(&self, other: &Self) -> bool {
+                        let left: &#via = self;
+                        let right: &#via = other;
+                        left.eq(right)
                     }
                 }
             }

@@ -2,12 +2,12 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::GenericParam;
 
-use crate::{impls::deriving_via::partial_ord, utils::extract_fields};
+use super::super::utils::extract_fields;
 
 pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> TokenStream {
     [
         impl_ord(input, via.as_ref()),
-        partial_ord::extract(input, via),
+        super::partial_ord::extract(input, via),
     ]
     .into_iter()
     .collect()
