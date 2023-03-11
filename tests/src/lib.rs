@@ -3,7 +3,11 @@ mod add;
 #[cfg(test)]
 mod arithmetic;
 #[cfg(test)]
+mod as_mut;
+#[cfg(test)]
 mod as_ref;
+#[cfg(test)]
+mod deref_mut;
 #[cfg(test)]
 mod deserialize;
 #[cfg(test)]
@@ -20,6 +24,8 @@ mod from_str;
 mod hash;
 #[cfg(test)]
 mod index;
+#[cfg(test)]
+mod index_mut;
 #[cfg(test)]
 mod into;
 #[cfg(test)]

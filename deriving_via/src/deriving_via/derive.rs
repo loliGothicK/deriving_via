@@ -1,7 +1,9 @@
 pub(crate) mod add;
 pub(crate) mod arithmetic;
+pub(crate) mod as_mut;
 pub(crate) mod as_ref;
 pub(crate) mod deref;
+pub(crate) mod deref_mut;
 pub(crate) mod deserialize;
 pub(crate) mod display;
 pub(crate) mod eq;
@@ -10,6 +12,7 @@ pub(crate) mod from_iterator;
 pub(crate) mod from_str;
 pub(crate) mod hash;
 pub(crate) mod index;
+pub(crate) mod index_mut;
 pub(crate) mod into;
 pub(crate) mod mul;
 pub(crate) mod ord;
