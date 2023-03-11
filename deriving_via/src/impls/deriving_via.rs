@@ -1,5 +1,5 @@
 use proc_macro2::TokenStream;
-use quote::quote;
+use quote::{quote, ToTokens};
 use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, IntoStaticStr};
 use syn::{
@@ -90,9 +90,21 @@ impl Parse for Via {
 
         let _ = syn::parenthesized!(content in input);
 
-        Ok(Via {
+        let via = Via {
             via: content.parse()?,
-        })
+        };
+
+        via.via
+            .expr
+            .clone()
+            .into_token_stream()
+            .to_string()
+            .eq("via")
+            .then(|| via.to_owned())
+            .ok_or(syn::Error::new_spanned(
+                &via.via.expr,
+                format!("expected: `via`, got: `{}`", via.via.expr.to_token_stream()),
+            ))
     }
 }
 
