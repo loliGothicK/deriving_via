@@ -128,33 +128,43 @@ struct Base(Underlying);
 struct Target(Base);
 ```
 
-- `Display`
-- `Eq`
-- `Ord`
-- `Hash`
-- `serde::Serialize`
-- `serde::Deserialize`
-- `Into`
-  - additional requirements: `Base: Into<Underlying>`
-  - limitations: one hop or `#[transitive]`
-- `From`
-  - additional requirements: `Base: From<Underlying>`
-  - limitations: one hop or `#[transitive]`
-- `TryFrom`
-  - additional requirements: `Base: From<Underlying>`
-  - limitations: one hop or `#[transitive]`
-- `FromStr`
-  - additional requirements: `Base: From<Underlying>`
-  - limitations: one hop or `#[transitive]`
-- `Add`-lile (Add, Sub)
-  - additional requirements: `Base: From<Underlying>`
-  - limitations: one hop or `#[transitive]`
-- `Mul`-like (Mul, Div)
-  - additional requirements: `Base: From<Underlying>`
-  - limitations: one hop or `#[transitive]`
-- `Arithmetic` (Add, Sub, Mul, Div)
-  - additional requirements: `Base: From<Underlying>`
-  - limitations: one hop or `#[transitive]`
+- fmt
+  - `Display`
+- ops
+  - `Eq`
+  - `Ord`
+  - `Add`-lile (Add, Sub)
+    - additional requirements: `Base: From<Underlying>`
+    - limitations: one hop or `#[transitive]`
+  - `Mul`-like (Mul, Div)
+    - additional requirements: `Base: From<Underlying>`
+    - limitations: one hop or `#[transitive]`
+  - `Arithmetic` (Add, Sub, Mul, Div)
+    - additional requirements: `Base: From<Underlying>`
+    - limitations: one hop or `#[transitive]`
+  - `Index`
+  - `IndexMut`
+  - `DerefMut`
+- hash
+  - `Hash`
+- serde
+  - `Serialize`
+  - `Deserialize`
+- convert
+  - `AsRef`
+  - `AsMut`
+  - `FromIterator`
+  - `Into`
+    - additional requirements: `Base: Into<Underlying>`
+    - limitations: one hop or `#[transitive]`
+  - `From`
+    - limitations: one hop or `#[transitive]`
+  - `TryFrom`
+    - additional requirements: `Base: From<Underlying>`
+    - limitations: one hop or `#[transitive]`
+  - `FromStr`
+    - additional requirements: `Base: From<Underlying>`
+    - limitations: one hop or `#[transitive]`
 
 ## Caveat
 
