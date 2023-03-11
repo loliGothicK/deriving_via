@@ -4,7 +4,7 @@ use syn::GenericParam;
 
 use crate::utils::extract_fields;
 
-pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
+pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
     let generics = {
         let lt = &input.generics.lt_token;
@@ -26,7 +26,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> Toke
     let where_clause = &input.generics.where_clause;
     let (accessor, field_ty, _) = extract_fields(input);
 
-    via.map_or_else(
+    via.as_ref().map_or_else(
         || {
             quote! {
                 impl #generics ::core::convert::From<#struct_name #generic_params> for #field_ty #where_clause {
@@ -37,6 +37,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> Toke
             }
         },
         |via| {
+            // TODO: abort if violates the Orphan Rule
             quote! {
                 impl #generics ::core::convert::From<#struct_name #generic_params> for #via #where_clause {
                     fn from(__: #struct_name #generic_params) -> #via {

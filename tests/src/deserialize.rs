@@ -10,12 +10,12 @@ pub struct A(i32);
 pub struct B(A);
 
 #[derive(DerivingVia)]
-#[deriving(From, Serialize(via = i32), Deserialize(via = i32))]
+#[deriving(From, Serialize(via: i32), Deserialize(via: i32))]
 #[transitive(i32 -> A -> B -> C)]
 pub struct C(B);
 
 #[derive(DerivingVia)]
-#[deriving(From, Serialize(via = T), Deserialize(via = T))]
+#[deriving(From, Serialize(via: T), Deserialize(via: T))]
 pub struct D<T: Serialize + for<'a> Deserialize<'a>>(T);
 
 #[test]

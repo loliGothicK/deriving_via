@@ -9,7 +9,7 @@ pub struct A(i32);
 pub struct B(A);
 
 #[derive(DerivingVia)]
-#[deriving(Display(via = i32))]
+#[deriving(Display(via: i32))]
 pub struct C(B);
 
 #[derive(DerivingVia)]

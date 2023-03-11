@@ -4,7 +4,7 @@ use syn::GenericParam;
 
 use crate::utils::extract_fields;
 
-pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
+pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
     let _generics = {
         let lt = &input.generics.lt_token;
@@ -31,7 +31,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> Toke
     let generics_params = &input.generics.params;
     let (_, field_ty, constructor) = extract_fields(input);
 
-    via.map_or_else(
+    via.as_ref().map_or_else(
         || {
             quote! {
                 impl<'de, #generics_params> serde::Deserialize<'de> for #struct_name #generic_params {

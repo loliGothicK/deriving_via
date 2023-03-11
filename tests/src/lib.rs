@@ -19,6 +19,8 @@ mod from_str;
 #[cfg(test)]
 mod hash;
 #[cfg(test)]
+mod index;
+#[cfg(test)]
 mod into;
 #[cfg(test)]
 mod mul;

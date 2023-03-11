@@ -1,5 +1,5 @@
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::quote;
 use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, IntoStaticStr};
 use syn::{
@@ -19,6 +19,7 @@ mod from;
 mod from_iterator;
 mod from_str;
 mod hash;
+mod index;
 mod into;
 mod mul;
 mod ord;
@@ -26,32 +27,6 @@ mod partial_eq;
 mod partial_ord;
 mod serialize;
 mod try_from;
-
-#[derive(Debug, typed_builder::TypedBuilder)]
-struct Derive {
-    path: syn::Path,
-    #[builder(default, setter(strip_option))]
-    via: Option<syn::Type>,
-}
-
-#[derive(Debug, Default)]
-struct DerivingAttributes(Vec<Derive>);
-
-struct Transitive {
-    #[allow(unused)]
-    paren_token: syn::token::Paren,
-    types: Punctuated<syn::Type, syn::Token![->]>,
-}
-
-impl Parse for Transitive {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        let content;
-        Ok(Transitive {
-            paren_token: syn::parenthesized!(content in input),
-            types: content.parse_terminated(syn::Type::parse)?,
-        })
-    }
-}
 
 #[derive(EnumIter, IntoStaticStr, Clone, Copy)]
 #[strum(serialize_all = "PascalCase")]
@@ -73,102 +48,88 @@ enum AvailableDerives {
     Arithmetic,
     AsRef,
     FromIterator,
+    Index,
+}
+
+#[derive(Debug)]
+struct Deriving {
+    path: syn::Path,
+    via: Option<Via>,
+}
+
+impl Parse for Deriving {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let path = input.parse()?;
+
+        let lookahead = input.lookahead1();
+        if lookahead.peek(syn::token::Paren) {
+            Ok(Deriving {
+                path,
+                via: Some(input.parse()?),
+            })
+        } else {
+            Ok(Deriving { path, via: None })
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+struct Via {
+    via: syn::ExprType,
+}
+
+impl From<Via> for syn::Type {
+    fn from(via: Via) -> Self {
+        *via.via.ty
+    }
+}
+
+impl Parse for Via {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let content;
+
+        let _ = syn::parenthesized!(content in input);
+
+        Ok(Via {
+            via: content.parse()?,
+        })
+    }
+}
+
+struct DerivingAttributes {
+    derivings: Punctuated<Deriving, syn::Token![,]>,
+}
+
+impl Parse for DerivingAttributes {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let content;
+        let _ = syn::parenthesized!(content in input);
+
+        Ok(DerivingAttributes {
+            derivings: content.parse_terminated(Deriving::parse)?,
+        })
+    }
+}
+
+struct Transitive {
+    #[allow(unused)]
+    paren_token: syn::token::Paren,
+    types: Punctuated<syn::Type, syn::Token![->]>,
+}
+
+impl Parse for Transitive {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let content;
+        Ok(Transitive {
+            paren_token: syn::parenthesized!(content in input),
+            types: content.parse_terminated(syn::Type::parse)?,
+        })
+    }
 }
 
 impl DerivingAttributes {
-    fn from_attribute(attribute: &syn::Attribute) -> syn::Result<Self> {
-        #[derive(Debug)]
-        enum Derive {
-            Single(Single),
-            DerivingVia(DerivingVia),
-        }
-
-        impl FromIterator<Derive> for Vec<crate::impls::deriving_via::Derive> {
-            fn from_iter<T: IntoIterator<Item = Derive>>(iter: T) -> Self {
-                type Target = crate::impls::deriving_via::Derive;
-                iter.into_iter()
-                    .flat_map(|derive| -> Vec<Target> {
-                        match derive {
-                            Derive::Single(Single { path }) => {
-                                vec![Target::builder().path(path).build()]
-                            }
-                            Derive::DerivingVia(DerivingVia {
-                                derive, via: path, ..
-                            }) => {
-                                vec![Target::builder().path(derive).via(path).build()]
-                            }
-                        }
-                    })
-                    .collect()
-            }
-        }
-
-        #[derive(Debug)]
-        struct Single {
-            path: syn::Path,
-        }
-
-        #[derive(Debug)]
-        struct DerivingVia {
-            derive: syn::Path,
-            via: syn::Type,
-        }
-
-        impl From<syn::Path> for Single {
-            fn from(path: syn::Path) -> Self {
-                Self { path }
-            }
-        }
-
-        impl From<(syn::Path, syn::Type)> for DerivingVia {
-            fn from((derive, via): (syn::Path, syn::Type)) -> Self {
-                Self { derive, via }
-            }
-        }
-
-        fn try_parse(input: syn::Expr) -> syn::Result<Derive> {
-            use syn::Expr::{Assign, Call, Path};
-            match input {
-                Path(derive) => AvailableDerives::iter()
-                    .any(|available_derive| derive.path.is_ident(available_derive.into()))
-                    .then(|| Derive::Single(Single::from(derive.path.clone())))
-                    .ok_or_else(|| syn::Error::new_spanned(derive, "unavailable derive")),
-                Call(syn::ExprCall { func, args, .. }) => match &*func {
-                    Path(path) => match args.iter().collect::<Vec<_>>().as_slice() {
-                        [Assign(syn::ExprAssign { left, right, .. })] => {
-                            if let (Path(keyword), ty) = (&**left, &**right) {
-                                if keyword.path.is_ident("via") {
-                                    return if let Ok(ty) = parse2(ty.into_token_stream()) {
-                                        Ok(Derive::DerivingVia(DerivingVia::from((
-                                            path.path.clone(),
-                                            ty,
-                                        ))))
-                                    } else {
-                                        Err(syn::Error::new_spanned(ty, "expected: <Type>"))
-                                    };
-                                }
-                            }
-                            Err(syn::Error::new_spanned(args, "expected: (via = <Type>)"))
-                        }
-                        _ => Err(syn::Error::new_spanned(args, "expected: (via = <Type>)")),
-                    },
-                    _ => Err(syn::Error::new_spanned(*func, "unavailable custom option")),
-                },
-                expr => Err(syn::Error::new_spanned(expr, "expected: (<...>)")),
-            }
-        }
-
-        let expr: syn::Expr = parse2(attribute.tokens.to_owned()).unwrap();
-        use syn::Expr::{Paren, Tuple};
-        Ok(Self(
-            match expr {
-                Paren(expr) => try_parse(*expr.expr).map(|derive| vec![derive]),
-                Tuple(items) => items.elems.into_iter().map(try_parse).collect(),
-                expr => Err(syn::Error::new_spanned(expr, "expected: (<Item>, ...)")),
-            }?
-            .into_iter()
-            .collect(),
-        ))
+    fn from_attribute(attr: &syn::Attribute) -> syn::Result<Self> {
+        parse2(attr.tokens.to_owned())
     }
 }
 
@@ -203,7 +164,7 @@ pub(crate) fn impl_deriving_via(input: &syn::DeriveInput) -> TokenStream {
 
 fn extractor(
     target: AvailableDerives,
-) -> impl FnOnce(&syn::DeriveInput, Option<&syn::Type>) -> TokenStream {
+) -> impl FnOnce(&syn::DeriveInput, Option<syn::Type>) -> TokenStream {
     use AvailableDerives::*;
     match target {
         Display => display::extract,
@@ -223,20 +184,20 @@ fn extractor(
         Arithmetic => arithmetic::extract,
         AsRef => as_ref::extract,
         FromIterator => from_iterator::extract,
+        Index => index::extract,
     }
 }
 
 impl DerivingAttributes {
     fn into_token_stream(self, input: &syn::DeriveInput) -> TokenStream {
-        self.0
+        self.derivings
             .into_iter()
             .map(|derive| {
                 AvailableDerives::iter()
                     .filter_map(|ad| {
-                        derive
-                            .path
-                            .is_ident(ad.into())
-                            .then(|| extractor(ad)(input, derive.via.as_ref()))
+                        derive.path.is_ident(ad.into()).then(|| {
+                            extractor(ad)(input, derive.via.as_ref().cloned().map(Into::into))
+                        })
                     })
                     .collect::<Vec<_>>()
                     .first()

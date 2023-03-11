@@ -1,15 +1,15 @@
 use deriving_via::DerivingVia;
 
 #[derive(DerivingVia)]
-#[deriving(Into(via = i32))]
+#[deriving(Into(via: i32))]
 pub struct A(i32);
 
 #[derive(DerivingVia)]
-#[deriving(Into(via = i32))]
+#[deriving(Into(via: i32))]
 pub struct B(A);
 
 #[derive(DerivingVia)]
-#[deriving(Into(via = i32))]
+#[deriving(Into(via: i32))]
 pub struct C(B);
 
 // not allowed

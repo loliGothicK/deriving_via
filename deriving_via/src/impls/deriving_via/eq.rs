@@ -4,7 +4,7 @@ use syn::GenericParam;
 
 use super::partial_eq;
 
-pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
+pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
     let generics = {
         let lt = &input.generics.lt_token;

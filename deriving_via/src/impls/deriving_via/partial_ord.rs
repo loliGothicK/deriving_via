@@ -4,7 +4,7 @@ use syn::GenericParam;
 
 use crate::utils::extract_fields;
 
-pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
+pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
     let generics = {
         let lt = &input.generics.lt_token;
@@ -26,7 +26,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> Toke
     let where_clause = &input.generics.where_clause;
     let (accessor, ..) = extract_fields(input);
 
-    via.map_or_else(
+    via.as_ref().map_or_else(
         || {
             quote! {
                 impl #generics PartialOrd for #struct_name #generic_params #where_clause {

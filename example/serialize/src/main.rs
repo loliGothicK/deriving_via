@@ -3,11 +3,11 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 #[derive(Debug, DerivingVia)]
-#[deriving(Display, From, Serialize(via = u32), Deserialize(via = u32))]
+#[deriving(Display, From, Serialize(via: u32), Deserialize(via: u32))]
 struct Id<T>(#[underlying] u32, std::marker::PhantomData<T>);
 
 #[derive(Debug, DerivingVia)]
-#[deriving(Display, From, FromStr, Serialize(via = String), Deserialize(via = String))]
+#[deriving(Display, From, FromStr, Serialize(via: String), Deserialize(via: String))]
 struct Name<T>(#[underlying] String, std::marker::PhantomData<T>);
 
 #[derive(Debug, Serialize, Deserialize)]

@@ -9,12 +9,12 @@ pub struct A(i32);
 pub struct B(A);
 
 #[derive(DerivingVia)]
-#[deriving(From, AsRef(via = i32))]
+#[deriving(From, AsRef(via: i32))]
 #[transitive(i32 -> A -> B -> C)]
 pub struct C(B);
 
 #[derive(DerivingVia)]
-#[deriving(From, AsRef(via = T))]
+#[deriving(From, AsRef(via: T))]
 pub struct D<T>(T);
 
 #[test]

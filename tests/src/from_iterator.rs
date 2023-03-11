@@ -1,11 +1,11 @@
 use deriving_via::DerivingVia;
 
 #[derive(DerivingVia)]
-#[deriving(FromIterator(via = i32))]
+#[deriving(FromIterator(via: i32))]
 pub struct A(Vec<i32>);
 
 #[derive(DerivingVia)]
-#[deriving(FromIterator(via = T))]
+#[deriving(FromIterator(via: T))]
 pub struct B<T>(Vec<T>);
 
 #[test]

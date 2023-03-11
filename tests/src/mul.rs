@@ -11,12 +11,12 @@ pub struct A(i32);
 pub struct B(A);
 
 #[derive(DerivingVia)]
-#[deriving(From, Mul(via = i32))]
+#[deriving(From, Mul(via: i32))]
 #[transitive(i32 -> A -> B -> C)]
 pub struct C(B);
 
 #[derive(DerivingVia)]
-#[deriving(From, Mul(via = T))]
+#[deriving(From, Mul(via: T))]
 pub struct D<T: Mul + Div + Clone>(T);
 
 #[test]

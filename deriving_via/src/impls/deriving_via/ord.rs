@@ -4,10 +4,13 @@ use syn::GenericParam;
 
 use crate::{impls::deriving_via::partial_ord, utils::extract_fields};
 
-pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
-    [impl_ord(input, via), partial_ord::extract(input, via)]
-        .into_iter()
-        .collect()
+pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> TokenStream {
+    [
+        impl_ord(input, via.as_ref()),
+        partial_ord::extract(input, via),
+    ]
+    .into_iter()
+    .collect()
 }
 
 fn impl_ord(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
@@ -32,7 +35,7 @@ fn impl_ord(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
     let where_clause = &input.generics.where_clause;
     let (accessor, ..) = extract_fields(input);
 
-    via.map_or_else(
+    via.as_ref().map_or_else(
         || {
             quote! {
                 impl #generics Ord for #struct_name #generic_params #where_clause {

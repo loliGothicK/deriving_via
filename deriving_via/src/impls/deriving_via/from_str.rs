@@ -4,7 +4,7 @@ use syn::GenericParam;
 
 use crate::utils::extract_fields;
 
-pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
+pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
     let generics = {
         let lt = &input.generics.lt_token;
@@ -26,7 +26,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<&syn::Type>) -> Toke
     let where_clause = &input.generics.where_clause;
     let (_, field_ty, constructor) = extract_fields(input);
 
-    match via.unwrap_or(&field_ty) {
+    match via.as_ref().unwrap_or(&field_ty) {
         syn::Type::Path(path) if path.path.is_ident("String") => {
             quote! {
                 impl #generics std::str::FromStr for #struct_name #generic_params #where_clause {

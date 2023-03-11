@@ -11,12 +11,12 @@ pub struct A(i32);
 pub struct B(A);
 
 #[derive(DerivingVia)]
-#[deriving(From, Arithmetic(via = i32))]
+#[deriving(From, Arithmetic(via: i32))]
 #[transitive(i32 -> A -> B -> C)]
 pub struct C(B);
 
 #[derive(DerivingVia)]
-#[deriving(From, Arithmetic(via = T))]
+#[deriving(From, Arithmetic(via: T))]
 pub struct D<T: Add + Sub + Mul + Div + Clone>(T);
 
 #[test]

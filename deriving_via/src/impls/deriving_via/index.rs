@@ -7,13 +7,6 @@ use crate::utils::extract_fields;
 
 pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
-    let generics = {
-        let lt = &input.generics.lt_token;
-        let params = &input.generics.params;
-        let gt = &input.generics.gt_token;
-
-        quote! { #lt #params #gt }
-    };
     let (generic_params, generic_types) = {
         let lt = &input.generics.lt_token;
         let params = input
@@ -37,26 +30,30 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
     via.as_ref().map_or_else(
         || {
             quote! {
-                impl<__AsRefT: ?::core::marker::Sized, #generic_types> ::core::convert::AsRef<__AsRefT> for #struct_name #generic_params
-                where
-                    #field_ty: ::core::convert::AsRef<__AsRefT>,
-                    #predicates
+                impl<__IdxT, #generic_types> ::core::ops::Index<__IdxT> for #struct_name #generic_params
+                    where
+                        #field_ty: ::core::ops::Index<__IdxT>,
+                        #predicates
                 {
+                    type Output = <#field_ty as ::core::ops::Index<__IdxT>>::Output;
                     #[inline]
-                    fn as_ref(&self) -> &__AsRefT {
-                        <#field_ty as ::core::convert::AsRef<__AsRefT>>::as_ref(&self.#accessor)
+                    fn index(&self, idx: __IdxT) -> &Self::Output {
+                        <#field_ty as ::core::ops::Index<__IdxT>>::index(&self.#accessor, idx)
                     }
                 }
             }
         },
         |via| {
             quote! {
-                impl #generics ::core::convert::AsRef<#via> for #struct_name #generic_params
-                    #where_clause
+                impl<__IdxT, #generic_types> ::core::ops::Index<__IdxT> for #struct_name #generic_params
+                    where
+                        #via: ::core::ops::Index<__IdxT>,
+                        #predicates
                 {
+                    type Output = <#via as ::core::ops::Index<__IdxT>>::Output;
                     #[inline]
-                    fn as_ref(&self) -> &#via {
-                        &self.#accessor
+                    fn index(&self, idx: __IdxT) -> &Self::Output {
+                        <#via as ::core::ops::Index<__IdxT>>::index(self, idx)
                     }
                 }
             }

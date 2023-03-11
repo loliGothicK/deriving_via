@@ -11,16 +11,16 @@ pub struct A(i32);
 pub struct B(A);
 
 #[derive(DerivingVia)]
-#[deriving(From, Add(via = i32), Mul(via = i32), Display(via = i32))]
+#[deriving(From, Add(via: i32), Mul(via: i32), Display(via: i32))]
 #[transitive(i32 -> A -> B -> C)]
 pub struct C(B);
 
 #[derive(DerivingVia)]
-#[deriving(From, Display(via = T))]
+#[deriving(From, Display(via: T))]
 pub struct D<T: Display>(T);
 
 #[derive(DerivingVia)]
-#[deriving(Display(via = i32), Into)]
+#[deriving(Display(via: i32), Into)]
 pub struct Test<T>(#[underlying] i32, std::marker::PhantomData<T>);
 
 fn main() {
