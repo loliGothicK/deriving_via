@@ -13,6 +13,8 @@ mod eq;
 #[cfg(test)]
 mod from;
 #[cfg(test)]
+mod from_iterator;
+#[cfg(test)]
 mod from_str;
 #[cfg(test)]
 mod hash;

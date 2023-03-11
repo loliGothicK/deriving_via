@@ -16,6 +16,7 @@ mod deserialize;
 mod display;
 mod eq;
 mod from;
+mod from_iterator;
 mod from_str;
 mod hash;
 mod into;
@@ -71,6 +72,7 @@ enum AvailableDerives {
     Mul,
     Arithmetic,
     AsRef,
+    FromIterator,
 }
 
 impl DerivingAttributes {
@@ -220,6 +222,7 @@ fn extractor(
         Mul => mul::extract,
         Arithmetic => arithmetic::extract,
         AsRef => as_ref::extract,
+        FromIterator => from_iterator::extract,
     }
 }
 
