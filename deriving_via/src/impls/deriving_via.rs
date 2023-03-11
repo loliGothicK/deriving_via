@@ -1,4 +1,5 @@
 use proc_macro2::TokenStream;
+use proc_macro_error::abort;
 use quote::{quote, ToTokens};
 use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, IntoStaticStr};
@@ -94,17 +95,23 @@ impl Parse for Via {
             via: content.parse()?,
         };
 
-        via.via
+        if let Some(via) = via
+            .via
             .expr
             .clone()
             .into_token_stream()
             .to_string()
             .eq("via")
             .then(|| via.to_owned())
-            .ok_or(syn::Error::new_spanned(
-                &via.via.expr,
-                format!("expected: `via`, got: `{}`", via.via.expr.to_token_stream()),
-            ))
+        {
+            Ok(via)
+        } else {
+            abort!(
+                via.via.expr,
+                "Unexpected token";
+                help = format!("expected: `via`, got: `{}`", via.via.expr.to_token_stream());
+            );
+        }
     }
 }
 
