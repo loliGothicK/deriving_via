@@ -50,7 +50,7 @@ struct Target(Base);
 The syntax of `<Derive>` is defined as follows.
 
 ```text
-Derive := <Trait> | <Trait>(via = <Type>)
+Derive := <Trait> | <Trait>(via: <Type>)
 ```
 
 ## Deriving Via
@@ -73,7 +73,7 @@ pub struct A(i32);
 pub struct B(A);
 
 #[derive(DerivingVia)]
-#[deriving(Display(via = i32))]
+#[deriving(Display(via: i32))]
 pub struct C(B);
 
 fn main() {
@@ -103,7 +103,7 @@ pub struct A(i32);
 pub struct B(A);
 
 #[derive(DerivingVia)]
-#[deriving(From, Add(via = i32), Display(via = i32))]
+#[deriving(From, Add(via: i32), Display(via: i32))]
 #[transitive(i32 -> A -> B -> C)]
 pub struct C(B);
 

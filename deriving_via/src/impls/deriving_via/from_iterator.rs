@@ -41,7 +41,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
         abort!(
             input,
             "#[deriving(FromIterator)] is not allowed";
-            help = "Specify via as #[deriving(FromIterator(via = <ItemType>)])";
+            help = "Specify via as #[deriving(FromIterator(via: <ItemType>)])";
         );
     }
 }

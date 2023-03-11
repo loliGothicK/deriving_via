@@ -33,7 +33,7 @@
 //! pub struct Inner(i32);
 //!
 //! #[derive(DerivingVia)]
-//! #[deriving(Display(via = i32))]
+//! #[deriving(Display(via: i32))]
 //! pub struct Outer(Inner);
 //!
 //! let x = Outer(Inner(42));
