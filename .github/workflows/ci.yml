@@ -65,7 +65,7 @@ jobs:
       RUSTV: ${{ matrix.rust }}
       SCCACHE_CACHE_SIZE: 2G
       SCCACHE_DIR: ${{ matrix.sccache-path }}
-      SCCACHE_VERSION: 0.3.0
+      SCCACHE_VERSION: 0.3.3
       # SCCACHE_RECACHE: 1 # Uncomment this to clear cache, then comment it back out
 
     steps:
