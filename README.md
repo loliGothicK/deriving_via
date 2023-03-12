@@ -134,13 +134,13 @@ struct Target(Base);
   - `Eq`
   - `Ord`
   - `Add`-lile (Add, Sub)
-    - additional requirements: `Base: From<Underlying>`
+    - requires: `Base: From<Underlying>`
     - limitations: one hop or `#[transitive]`
   - `Mul`-like (Mul, Div)
-    - additional requirements: `Base: From<Underlying>`
+    - requires: `Base: From<Underlying>`
     - limitations: one hop or `#[transitive]`
   - `Arithmetic` (Add, Sub, Mul, Div)
-    - additional requirements: `Base: From<Underlying>`
+    - requires: `Base: From<Underlying>`
     - limitations: one hop or `#[transitive]`
   - `Index`
   - `IndexMut`
@@ -154,16 +154,17 @@ struct Target(Base);
   - `AsRef`
   - `AsMut`
   - `FromIterator`
+    - requires: `(via: <ItemType>)`
   - `Into`
-    - additional requirements: `Base: Into<Underlying>`
+    - requires: `Base: Into<Underlying>`
     - limitations: one hop or `#[transitive]`
   - `From`
     - limitations: one hop or `#[transitive]`
   - `TryFrom`
-    - additional requirements: `Base: From<Underlying>`
+    - requires: `Base: From<Underlying>`
     - limitations: one hop or `#[transitive]`
   - `FromStr`
-    - additional requirements: `Base: From<Underlying>`
+    - requires: `Base: From<Underlying>`
     - limitations: one hop or `#[transitive]`
 
 ## Caveat
