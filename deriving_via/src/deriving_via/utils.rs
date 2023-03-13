@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use proc_macro2::TokenStream;
 use proc_macro_error::abort;
 use quote::quote;
@@ -33,22 +34,23 @@ pub(crate) fn extract_fields(ast: &syn::DeriveInput) -> (Accessor, UnderlyingTyp
                     });
                 (accessor, field.ty.to_owned(), constructor)
             } else {
-                match fields.iter().enumerate().find(|(_, field)| {
-                    field
-                        .attrs
-                        .iter()
-                        .any(|attr| attr.path.is_ident("underlying"))
-                }) {
-                    None => abort!(
-                        ast,
-                        "#[underlying] is required for multiple fields";
-                        help = "Specify #[underlying] to the field";
-                    ),
-                    Some((idx, underlying)) => {
+                match fields
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, field)| {
+                        field
+                            .attrs
+                            .iter()
+                            .any(|attr| attr.path.is_ident("underlying"))
+                    })
+                    .collect_vec()
+                    .as_slice()
+                {
+                    [(idx, underlying)] => {
                         let ty = &underlying.ty;
                         let accessor = underlying.ident.as_ref().map_or_else(
                             || {
-                                let idx = syn::Index::from(idx);
+                                let idx = syn::Index::from(*idx);
                                 quote! { #idx }
                             },
                             |ident| quote! { #ident },
@@ -56,7 +58,7 @@ pub(crate) fn extract_fields(ast: &syn::DeriveInput) -> (Accessor, UnderlyingTyp
                         let defaults = fields
                             .iter()
                             .enumerate()
-                            .filter(|(_idx, field)| field != &underlying)
+                            .filter(|(_idx, field)| field != underlying)
                             .map(|(idx, field)| {
                                 field.ident.as_ref().map_or_else(
                                     || {
@@ -71,6 +73,16 @@ pub(crate) fn extract_fields(ast: &syn::DeriveInput) -> (Accessor, UnderlyingTyp
                         let constructor = quote! { (|__| #struct_name { #accessor: __, #(#defaults: Default::default()),* }) };
                         (accessor, ty.to_owned(), constructor)
                     }
+                    [] => abort!(
+                        ast,
+                        "#[underlying] is required for multiple fields";
+                        help = "Specify #[underlying] to the field.";
+                    ),
+                    _ => abort!(
+                        ast,
+                        "multiple #[underlying] specifier is not allowed";
+                        help = "Specify #[underlying] to only one field.";
+                    ),
                 }
             }
         }
