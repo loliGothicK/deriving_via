@@ -14,6 +14,7 @@ pub(crate) mod hash;
 pub(crate) mod index;
 pub(crate) mod index_mut;
 pub(crate) mod into;
+pub(crate) mod into_iterator;
 pub(crate) mod mul;
 pub(crate) mod ord;
 pub(crate) mod partial_eq;

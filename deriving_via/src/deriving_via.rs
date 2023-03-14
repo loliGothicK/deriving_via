@@ -38,6 +38,7 @@ enum AvailableDerives {
     AsMut,
     DerefMut,
     IndexMut,
+    IntoIterator,
 }
 
 #[derive(Debug)]
@@ -195,6 +196,7 @@ fn extractor(
         AsMut => as_mut::extract,
         DerefMut => deref_mut::extract,
         IndexMut => index_mut::extract,
+        IntoIterator => into_iterator::extract,
     }
 }
 
