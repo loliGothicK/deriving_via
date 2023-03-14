@@ -124,15 +124,18 @@ fn main() {
 struct Base(Underlying);
 
 #[derive(DerivingVia)]
-#[deriving(<Derive>...)]
+#[deriving(<Derive>)]
 struct Target(Base);
 ```
 
 - fmt
   - `Display`
+    - requires: `Base: Display` or `(via = <Type>) and Type: Display`
 - ops
   - `Eq`
+    - requires: `Base: Eq` or `(via = <Type>) and Type: Eq`
   - `Ord`
+    - requires: `Base: Ord` or `(via = <Type>) and Type: Ord`
   - `Add`-lile (Add, Sub)
     - requires: `Base: From<Underlying>`
     - limitations: one hop or `#[transitive]`
@@ -143,18 +146,26 @@ struct Target(Base);
     - requires: `Base: From<Underlying>`
     - limitations: one hop or `#[transitive]`
   - `Index`
+    - requires: `Base: Index` or `(via = <Type>) and Type: Index`
   - `IndexMut`
+    - requires: `Base: IndexMut` or `(via = <Type>) and Type: IndexMut`
   - `DerefMut`
+    - requires: `Base: DerefMut` or `(via = <Type>) and Type: DerefMut`
 - hash
   - `Hash`
+    - requires: `Base: Hash` or `(via = <Type>) and Type: Hash`
 - serde
   - `Serialize`
+    - requires: `Base: Serialize` or `(via = <Type>) and Type: Serialize`
   - `Deserialize`
+    - requires: `Base: Deserialize` or `(via = <Type>) and Type: Deserialize`
 - convert
   - `AsRef`
   - `AsMut`
   - `FromIterator`
     - requires: `(via: <ItemType>)`
+  - `IntoIterator`
+    - requires: `Base: IntoIterator` or `(via: <Type>), Type: IntoIterator`
   - `Into`
     - requires: `Base: Into<Underlying>`
     - limitations: one hop or `#[transitive]`
@@ -166,6 +177,10 @@ struct Target(Base);
   - `FromStr`
     - requires: `Base: From<Underlying>`
     - limitations: one hop or `#[transitive]`
+- impls
+  - Iter
+    - requires: `Base: IntoIterator and Base dereferenceable to slice` or `(via: <Type>), Type: IntoIterator and Type dereferenceable to slice`
+
 
 ## Caveat
 
