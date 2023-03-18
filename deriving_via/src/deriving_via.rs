@@ -42,7 +42,11 @@ enum AvailableDerives {
     Iter,
 }
 
-#[derive(Debug)]
+mod keyword {
+    syn::custom_keyword!(deriving);
+    syn::custom_keyword!(transitive);
+}
+
 struct Deriving {
     path: syn::Path,
     via: Option<Via>,
@@ -64,14 +68,18 @@ impl Parse for Deriving {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 struct Via {
-    via: syn::ExprType,
+    via: syn::FnArg,
 }
 
 impl From<Via> for syn::Type {
     fn from(via: Via) -> Self {
-        *via.via.ty
+        use syn::FnArg::*;
+        match via.via {
+            Receiver(_) => unreachable!(""),
+            Typed(typed) => *typed.ty,
+        }
     }
 }
 
@@ -85,22 +93,28 @@ impl Parse for Via {
             via: content.parse()?,
         };
 
-        if let Some(via) = via
-            .via
-            .expr
-            .clone()
-            .into_token_stream()
-            .to_string()
-            .eq("via")
-            .then(|| via.to_owned())
-        {
-            Ok(via)
-        } else {
-            abort!(
-                via.via.expr,
+        use syn::FnArg::*;
+
+        match &via.via {
+            Receiver(_) => abort!(
+                via.via,
                 "Unexpected token";
-                help = format!("expected: `via`, got: `{}`", via.via.expr.to_token_stream());
-            );
+                help = "expected: `via`, got: `self`";
+            ),
+            Typed(typed) => typed
+                .pat
+                .clone()
+                .into_token_stream()
+                .to_string()
+                .eq("via")
+                .then_some(via.to_owned())
+                .ok_or(syn::Error::new_spanned(
+                    &via.via,
+                    format!(
+                        "expected: `via`, got: `{}`",
+                        typed.pat.clone().into_token_stream()
+                    ),
+                )),
         }
     }
 }
@@ -112,39 +126,40 @@ struct DerivingAttributes {
 impl Parse for DerivingAttributes {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let content;
+        let _ = input.parse::<keyword::deriving>()?;
         let _ = syn::parenthesized!(content in input);
 
         Ok(DerivingAttributes {
-            derivings: content.parse_terminated(Deriving::parse)?,
+            derivings: content.parse_terminated(Deriving::parse, syn::Token![,])?,
         })
     }
 }
 
 struct Transitive {
-    #[allow(unused)]
-    paren_token: syn::token::Paren,
     types: Punctuated<syn::Type, syn::Token![->]>,
 }
 
 impl Parse for Transitive {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let content;
+        let _ = input.parse::<keyword::transitive>()?;
+        let _ = syn::parenthesized!(content in input);
+
         Ok(Transitive {
-            paren_token: syn::parenthesized!(content in input),
-            types: content.parse_terminated(syn::Type::parse)?,
+            types: content.parse_terminated(syn::Type::parse, syn::Token![->])?,
         })
     }
 }
 
 impl DerivingAttributes {
     fn from_attribute(attr: &syn::Attribute) -> syn::Result<Self> {
-        parse2(attr.tokens.to_owned())
+        parse2(attr.meta.to_token_stream())
     }
 }
 
 impl Transitive {
     fn from_attribute(attr: &syn::Attribute) -> syn::Result<Self> {
-        parse2(attr.tokens.to_owned())
+        parse2(attr.meta.to_token_stream())
     }
 }
 
@@ -153,12 +168,22 @@ pub(crate) fn impl_deriving_via(input: &syn::DeriveInput) -> TokenStream {
         .attrs
         .iter()
         .map(|attr| {
-            if attr.path.is_ident("deriving") {
+            if attr
+                .meta
+                .to_token_stream()
+                .to_string()
+                .starts_with("deriving")
+            {
                 match DerivingAttributes::from_attribute(attr) {
                     Ok(deriving) => deriving.into_token_stream(input),
                     Err(err) => err.to_compile_error(),
                 }
-            } else if attr.path.is_ident("transitive") {
+            } else if attr
+                .meta
+                .to_token_stream()
+                .to_string()
+                .starts_with("transitive")
+            {
                 match Transitive::from_attribute(attr) {
                     Ok(transitive) => transitive.into_token_stream(input),
                     Err(err) => err.to_compile_error(),

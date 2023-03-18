@@ -41,7 +41,7 @@ pub(crate) fn extract_fields(ast: &syn::DeriveInput) -> (Accessor, UnderlyingTyp
                         field
                             .attrs
                             .iter()
-                            .any(|attr| attr.path.is_ident("underlying"))
+                            .any(|attr| attr.path().is_ident("underlying"))
                     })
                     .collect_vec()
                     .as_slice()
@@ -58,7 +58,13 @@ pub(crate) fn extract_fields(ast: &syn::DeriveInput) -> (Accessor, UnderlyingTyp
                         let defaults = fields
                             .iter()
                             .enumerate()
-                            .filter(|(_idx, field)| field != underlying)
+                            .filter(|(i, field)| {
+                                match (field.ident.as_ref(), underlying.ident.as_ref()) {
+                                    (Some(x), Some(y)) if x != y => true,
+                                    (None, None) => i != idx,
+                                    _ => false,
+                                }
+                            })
                             .map(|(idx, field)| {
                                 field.ident.as_ref().map_or_else(
                                     || {
