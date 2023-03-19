@@ -196,34 +196,34 @@ pub(crate) fn impl_deriving_via(input: &syn::DeriveInput) -> TokenStream {
         .collect()
 }
 
-fn extractor(
-    target: AvailableDerives,
-) -> impl FnOnce(&syn::DeriveInput, Option<syn::Type>) -> TokenStream {
-    use AvailableDerives::*;
-    match target {
-        Display => display::extract,
-        Into => into::extract,
-        From => from::extract,
-        PartialEq => partial_eq::extract,
-        Eq => eq::extract,
-        PartialOrd => partial_ord::extract,
-        Ord => ord::extract,
-        TryFrom => try_from::extract,
-        FromStr => from_str::extract,
-        Hash => hash::extract,
-        Serialize => serialize::extract,
-        Deserialize => deserialize::extract,
-        Add => add::extract,
-        Mul => mul::extract,
-        Arithmetic => arithmetic::extract,
-        AsRef => as_ref::extract,
-        FromIterator => from_iterator::extract,
-        Index => index::extract,
-        AsMut => as_mut::extract,
-        DerefMut => deref_mut::extract,
-        IndexMut => index_mut::extract,
-        IntoIterator => into_iterator::extract,
-        Iter => iter::extract,
+impl AvailableDerives {
+    fn invoke(self, input: &syn::DeriveInput, via: Option<syn::Type>) -> TokenStream {
+        use AvailableDerives::*;
+        (match self {
+            Display => display::extract,
+            Into => into::extract,
+            From => from::extract,
+            PartialEq => partial_eq::extract,
+            Eq => eq::extract,
+            PartialOrd => partial_ord::extract,
+            Ord => ord::extract,
+            TryFrom => try_from::extract,
+            FromStr => from_str::extract,
+            Hash => hash::extract,
+            Serialize => serialize::extract,
+            Deserialize => deserialize::extract,
+            Add => add::extract,
+            Mul => mul::extract,
+            Arithmetic => arithmetic::extract,
+            AsRef => as_ref::extract,
+            FromIterator => from_iterator::extract,
+            Index => index::extract,
+            AsMut => as_mut::extract,
+            DerefMut => deref_mut::extract,
+            IndexMut => index_mut::extract,
+            IntoIterator => into_iterator::extract,
+            Iter => iter::extract,
+        })(input, via)
     }
 }
 
@@ -234,9 +234,10 @@ impl DerivingAttributes {
             .map(|derive| {
                 AvailableDerives::iter()
                     .filter_map(|ad| {
-                        derive.path.is_ident(ad.into()).then(|| {
-                            extractor(ad)(input, derive.via.as_ref().cloned().map(Into::into))
-                        })
+                        derive
+                            .path
+                            .is_ident(ad.into())
+                            .then(|| ad.invoke(input, derive.via.as_ref().cloned().map(Into::into)))
                     })
                     .collect::<Vec<_>>()
                     .first()
