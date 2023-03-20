@@ -1,5 +1,6 @@
-use deriving_via::DerivingVia;
 use std::str::FromStr;
+
+use deriving_via::DerivingVia;
 
 #[derive(DerivingVia)]
 #[deriving(FromStr)]

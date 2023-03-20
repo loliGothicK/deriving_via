@@ -7,6 +7,8 @@ mod as_mut;
 #[cfg(test)]
 mod as_ref;
 #[cfg(test)]
+mod attribute;
+#[cfg(test)]
 mod deref_mut;
 #[cfg(test)]
 mod deserialize;

@@ -166,29 +166,29 @@ pub(crate) fn impl_deriving_via(input: &syn::DeriveInput) -> TokenStream {
     input
         .attrs
         .iter()
-        .map(|attr| {
+        .filter_map(|attr| {
             if attr
                 .meta
                 .to_token_stream()
                 .to_string()
                 .starts_with("deriving")
             {
-                match DerivingAttributes::from_attribute(attr) {
+                Some(match DerivingAttributes::from_attribute(attr) {
                     Ok(deriving) => deriving.into_token_stream(input),
                     Err(err) => err.to_compile_error(),
-                }
+                })
             } else if attr
                 .meta
                 .to_token_stream()
                 .to_string()
                 .starts_with("transitive")
             {
-                match Transitive::from_attribute(attr) {
+                Some(match Transitive::from_attribute(attr) {
                     Ok(transitive) => transitive.into_token_stream(input),
                     Err(err) => err.to_compile_error(),
-                }
+                })
             } else {
-                syn::Error::new_spanned(attr, "unknown attribute").to_compile_error()
+                None
             }
         })
         .chain(std::iter::once_with(|| deref::extract(input)))
