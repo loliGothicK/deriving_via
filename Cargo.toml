@@ -1,2 +1,8 @@
 [workspace]
-members = ["deriving_via", "tests", "example/basics", "example/serialize"]
+members = [
+    "deriving_via",
+    "tests",
+    "example/basics",
+    "example/serialize",
+    "example/id",
+]

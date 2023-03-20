@@ -1,0 +1,13 @@
+[package]
+name = "id"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+deriving_via = { path = "../../deriving_via" }
+anyhow = "1.0.70"
+
+[dev-dependencies.cargo-husky]
+version = "1"
+default-features = false # Disable features which are enabled by default
+features = ["user-hooks"]

@@ -103,8 +103,7 @@ impl Parse for Via {
             ),
             Typed(typed) => typed
                 .pat
-                .clone()
-                .into_token_stream()
+                .to_token_stream()
                 .to_string()
                 .eq("via")
                 .then_some(via.to_owned())

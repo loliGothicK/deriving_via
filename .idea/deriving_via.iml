@@ -8,6 +8,8 @@
       <sourceFolder url="file://$MODULE_DIR$/tests/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/example/basics/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/example/serialize/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/example/id/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/example/validated/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/deriving_via/target" />
     </content>

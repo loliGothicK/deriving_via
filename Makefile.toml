@@ -1,5 +1,6 @@
 [config]
 skip_core_tasks = true
+default_to_workspace = false
 
 [env]
 __CARGO_FIX_YOLO=1

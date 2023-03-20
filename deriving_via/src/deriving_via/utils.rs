@@ -11,7 +11,7 @@ pub(crate) fn extract_fields(ast: &syn::DeriveInput) -> (Accessor, UnderlyingTyp
     let struct_name = &ast.ident;
     match ast.data {
         syn::Data::Struct(syn::DataStruct { ref fields, .. }) => {
-            let fields = fields.iter().collect::<Vec<_>>();
+            let fields = fields.iter().collect_vec();
 
             if fields.len() == 1 {
                 let field = fields.first().unwrap();
@@ -74,7 +74,7 @@ pub(crate) fn extract_fields(ast: &syn::DeriveInput) -> (Accessor, UnderlyingTyp
                                     |ident| quote! { #ident },
                                 )
                             })
-                            .collect::<Vec<_>>();
+                            .collect_vec();
 
                         let constructor = quote! { (|__| #struct_name { #accessor: __, #(#defaults: Default::default()),* }) };
                         (accessor, ty.to_owned(), constructor)
