@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "deriving_via",
+    "deriving_via_impl",
     "tests",
     "example/basics",
     "example/serialize",

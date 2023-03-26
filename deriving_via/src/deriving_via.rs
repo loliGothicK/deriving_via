@@ -14,7 +14,7 @@ use crate::deriving_via::derive::*;
 mod derive;
 pub(crate) mod utils;
 
-#[derive(EnumIter, IntoStaticStr, Clone, Copy)]
+#[derive(deriving_via_impl::Invoke, EnumIter, IntoStaticStr, Clone, Copy)]
 #[strum(serialize_all = "PascalCase")]
 enum AvailableDerives {
     Display,
@@ -194,38 +194,6 @@ pub(crate) fn impl_deriving_via(input: &syn::DeriveInput) -> TokenStream {
         })
         .chain([deref::extract(input), deref_mut::extract(input, None)])
         .collect()
-}
-
-impl AvailableDerives {
-    fn invoke(self, input: &syn::DeriveInput, via: Option<syn::Type>) -> TokenStream {
-        use AvailableDerives::*;
-        (match self {
-            Display => display::extract,
-            Into => into::extract,
-            From => from::extract,
-            PartialEq => partial_eq::extract,
-            Eq => eq::extract,
-            PartialOrd => partial_ord::extract,
-            Ord => ord::extract,
-            TryFrom => try_from::extract,
-            FromStr => from_str::extract,
-            Hash => hash::extract,
-            Serialize => serialize::extract,
-            Deserialize => deserialize::extract,
-            Add => add::extract,
-            Mul => mul::extract,
-            Arithmetic => arithmetic::extract,
-            AsRef => as_ref::extract,
-            FromIterator => from_iterator::extract,
-            Index => index::extract,
-            AsMut => as_mut::extract,
-            IndexMut => index_mut::extract,
-            IntoIterator => into_iterator::extract,
-            Iter => iter::extract,
-            AddAssign => add_assign::extract,
-            MulAssign => mul_assign::extract,
-        })(input, via)
-    }
 }
 
 impl DerivingAttributes {
