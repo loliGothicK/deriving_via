@@ -1,4 +1,5 @@
 pub(crate) mod add;
+pub(crate) mod add_assign;
 pub(crate) mod arithmetic;
 pub(crate) mod as_mut;
 pub(crate) mod as_ref;
@@ -17,6 +18,7 @@ pub(crate) mod into;
 pub(crate) mod into_iterator;
 pub(crate) mod iter;
 pub(crate) mod mul;
+pub(crate) mod mul_assign;
 pub(crate) mod ord;
 pub(crate) mod partial_eq;
 pub(crate) mod partial_ord;

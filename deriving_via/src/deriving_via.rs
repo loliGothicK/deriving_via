@@ -36,10 +36,11 @@ enum AvailableDerives {
     FromIterator,
     Index,
     AsMut,
-    DerefMut,
     IndexMut,
     IntoIterator,
     Iter,
+    AddAssign,
+    MulAssign,
 }
 
 mod keyword {
@@ -191,7 +192,7 @@ pub(crate) fn impl_deriving_via(input: &syn::DeriveInput) -> TokenStream {
                 None
             }
         })
-        .chain(std::iter::once_with(|| deref::extract(input)))
+        .chain([deref::extract(input), deref_mut::extract(input, None)])
         .collect()
 }
 
@@ -218,10 +219,11 @@ impl AvailableDerives {
             FromIterator => from_iterator::extract,
             Index => index::extract,
             AsMut => as_mut::extract,
-            DerefMut => deref_mut::extract,
             IndexMut => index_mut::extract,
             IntoIterator => into_iterator::extract,
             Iter => iter::extract,
+            AddAssign => add_assign::extract,
+            MulAssign => mul_assign::extract,
         })(input, via)
     }
 }
@@ -232,11 +234,10 @@ impl DerivingAttributes {
             .into_iter()
             .map(|derive| {
                 AvailableDerives::iter()
-                    .filter_map(|ad| {
-                        derive
-                            .path
-                            .is_ident(ad.into())
-                            .then(|| ad.invoke(input, derive.via.as_ref().cloned().map(Into::into)))
+                    .filter_map(|kind| {
+                        derive.path.is_ident(kind.into()).then(|| {
+                            kind.invoke(input, derive.via.as_ref().cloned().map(Into::into))
+                        })
                     })
                     .collect::<Vec<_>>()
                     .first()

@@ -5,7 +5,7 @@ use deriving_via::DerivingVia;
 pub struct C(Vec<i32>);
 
 #[derive(DerivingVia)]
-#[deriving(From, DerefMut, Index, IndexMut)]
+#[deriving(From, Index, IndexMut)]
 pub struct D<T>(Vec<T>);
 
 #[test]

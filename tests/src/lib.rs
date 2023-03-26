@@ -1,6 +1,8 @@
 #[cfg(test)]
 mod add;
 #[cfg(test)]
+mod add_assign;
+#[cfg(test)]
 mod arithmetic;
 #[cfg(test)]
 mod as_mut;
