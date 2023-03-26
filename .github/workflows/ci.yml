@@ -29,7 +29,7 @@ jobs:
           toolchain: nightly
           components: clippy
           override: true
-      - uses: LoliGothick/clippy-check@v0.2.5
+      - uses: LoliGothick/clippy-check@v0.2.6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           deny: warnings
