@@ -5,9 +5,9 @@
 
 # deriving_via
 
-This library is a slightly more convenient version of [`derive_more`](https://docs.rs/derive_more/latest/derive_more/) for newtype pattern.
+This library is a slightly more convenient version of `derive` for newtype pattern.
 
-=> [Deriving via](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/deriving_via.html)
+=> See also [Deriving via](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/deriving_via.html)
 
 ## Basic Usage
 
