@@ -7,37 +7,20 @@ use super::super::utils::extract_fields;
 
 pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
-    let generics = {
-        let lt = &input.generics.lt_token;
-        let params = &input.generics.params;
-        let gt = &input.generics.gt_token;
-
-        quote! { #lt #params #gt }
-    };
-    let generic_params = {
-        let lt = &input.generics.lt_token;
-        let params = input.generics.params.iter().filter_map(|p| match p {
-            GenericParam::Type(ty) => Some(&ty.ident),
-            _ => None,
-        });
-        let gt = &input.generics.gt_token;
-
-        quote! { #lt #(#params),* #gt }
-    };
-    let where_clause = &input.generics.where_clause;
+    let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
     let (accessor, _, constructor) = extract_fields(input);
 
     via.as_ref().map_or_else(
         || {
             quote! {
-                impl #generics std::ops::Mul for #struct_name #generic_params #where_clause {
+                impl #impl_generics ::core::ops::Mul for #struct_name #ty_generics #where_clause {
                     type Output = Self;
 
                     fn mul(self, other: Self) -> Self {
                         #constructor((self.#accessor * other.#accessor).into())
                     }
                 }
-                impl #generics std::ops::Div for #struct_name #generic_params #where_clause {
+                impl #impl_generics ::core::ops::Div for #struct_name #ty_generics #where_clause {
                     type Output = Self;
 
                     fn div(self, other: Self) -> Self {
@@ -51,13 +34,13 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
                 || {
                     quote! {
                         where
-                            Self: std::convert::From<<#via as std::ops::Mul>::Output>,
+                            Self: ::core::convert::From<<#via as ::core::ops::Mul>::Output>,
                     }
                 },
                 |where_clause| {
                     quote! {
                         #where_clause
-                            Self: std::convert::From<<#via as std::ops::Mul>::Output>,
+                            Self: ::core::convert::From<<#via as ::core::ops::Mul>::Output>,
                     }
                 },
             );
@@ -65,13 +48,13 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
                 || {
                     quote! {
                         where
-                            Self: std::convert::From<<#via as std::ops::Div>::Output>,
+                            Self: ::core::convert::From<<#via as ::core::ops::Div>::Output>,
                     }
                 },
                 |where_clause| {
                     quote! {
                         #where_clause
-                            Self: std::convert::From<<#via as std::ops::Div>::Output>,
+                            Self: ::core::convert::From<<#via as ::core::ops::Div>::Output>,
                     }
                 },
             );
@@ -89,7 +72,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
             };
 
             quote! {
-                impl #generics std::ops::Mul for #struct_name #generic_params #where_clause_for_mul {
+                impl #impl_generics ::core::ops::Mul for #struct_name #ty_generics #where_clause_for_mul {
                     type Output = Self;
 
                     fn mul(self, other: Self) -> Self {
@@ -98,7 +81,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
                         (lhs.to_owned() * rhs.to_owned()).into()
                     }
                 }
-                impl #generics std::ops::Div for #struct_name #generic_params #where_clause_for_div {
+                impl #impl_generics ::core::ops::Div for #struct_name #ty_generics #where_clause_for_div {
                     type Output = Self;
 
                     fn div(self, other: Self) -> Self {

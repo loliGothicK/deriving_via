@@ -1,37 +1,20 @@
 use proc_macro2::TokenStream;
 use proc_macro_error::abort;
 use quote::quote;
-use syn::GenericParam;
 
 use super::super::utils::extract_fields;
 
 pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
-    let generics = {
-        let lt = &input.generics.lt_token;
-        let params = &input.generics.params;
-        let gt = &input.generics.gt_token;
-
-        quote! { #lt #params #gt }
-    };
-    let generic_params = &input.generics.params;
-    let generic_types = {
-        let lt = &input.generics.lt_token;
-        let params = input.generics.params.iter().filter_map(|p| match p {
-            GenericParam::Type(ty) => Some(&ty.ident),
-            _ => None,
-        });
-        let gt = &input.generics.gt_token;
-
-        quote! { #lt #(#params),* #gt }
-    };
-    let where_clause = &input.generics.where_clause;
+    let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
+    let generics_introducer = &input.generics.params;
+    let generics_introducer = quote! { <'__derivingViaLifetime, #generics_introducer> };
     let (accessor, filed_ty, _constructor) = extract_fields(input);
 
     via.as_ref().map_or_else(
         || {
             quote! {
-                impl #generics ::core::iter::IntoIterator for #struct_name #generic_types
+                impl #impl_generics ::core::iter::IntoIterator for #struct_name #ty_generics
                     #where_clause
                 {
                     type Item = <#filed_ty as ::core::iter::IntoIterator>::Item;
@@ -42,7 +25,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
                     }
                 }
 
-                impl<'__derivingViaLifetime, #generic_params> ::core::iter::IntoIterator for &'__derivingViaLifetime #struct_name #generic_types
+                impl #generics_introducer ::core::iter::IntoIterator for &'__derivingViaLifetime #struct_name #ty_generics
                     #where_clause
                 {
                     type Item = <&'__derivingViaLifetime #filed_ty as ::core::iter::IntoIterator>::Item;
@@ -53,7 +36,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
                     }
                 }
 
-                impl<'__derivingViaLifetime, #generic_params> ::core::iter::IntoIterator for &'__derivingViaLifetime mut #struct_name #generic_types
+                impl #generics_introducer ::core::iter::IntoIterator for &'__derivingViaLifetime mut #struct_name #ty_generics
                     #where_clause
                 {
                     type Item = <&'__derivingViaLifetime mut #filed_ty as ::core::iter::IntoIterator>::Item;
