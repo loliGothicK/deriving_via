@@ -57,7 +57,7 @@ dependencies = [
 
 [[package]]
 name = "deriving_via"
-version = "1.1.4"
+version = "1.2.0"
 dependencies = [
  "cargo-husky",
  "deriving-via-impl 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
