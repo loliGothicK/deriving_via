@@ -1,35 +1,17 @@
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::GenericParam;
 
 use super::super::utils::extract_fields;
 
 pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
-    let generics = {
-        let lt = &input.generics.lt_token;
-        let params = &input.generics.params;
-        let gt = &input.generics.gt_token;
-
-        quote! { #lt #params #gt }
-    };
-    let generic_params = {
-        let lt = &input.generics.lt_token;
-        let params = input.generics.params.iter().filter_map(|p| match p {
-            GenericParam::Type(ty) => Some(&ty.ident),
-            _ => None,
-        });
-        let gt = &input.generics.gt_token;
-
-        quote! { #lt #(#params),* #gt }
-    };
-    let where_clause = &input.generics.where_clause;
+    let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
     let (_, field_ty, constructor) = extract_fields(input);
 
     via.as_ref().map_or_else(
         || {
             quote! {
-                impl #generics std::convert::TryFrom<#field_ty> for #struct_name #generic_params #where_clause {
+                impl #impl_generics std::convert::TryFrom<#field_ty> for #struct_name #ty_generics #where_clause {
                     type Error = <#field_ty as std::str::TryFrom>::Error;
 
                     fn try_from(__: #field_ty) -> std::result::Result<Self, Self::Error> {
@@ -40,7 +22,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
         },
         |via| {
             quote! {
-                impl #generics std::convert::TryFrom<#field_ty> for #struct_name #generic_params #where_clause {
+                impl #impl_generics std::convert::TryFrom<#field_ty> for #struct_name #ty_generics #where_clause {
                     type Error = <#via as std::str::TryFrom>::Error;
 
                     fn try_from(__: #field_ty) -> std::result::Result<Self, Self::Error> {

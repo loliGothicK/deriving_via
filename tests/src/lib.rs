@@ -11,7 +11,7 @@ mod as_ref;
 #[cfg(test)]
 mod attribute;
 #[cfg(test)]
-mod deref_mut;
+mod const_generics;
 #[cfg(test)]
 mod deserialize;
 #[cfg(test)]

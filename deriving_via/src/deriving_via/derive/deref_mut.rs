@@ -1,42 +1,17 @@
-use itertools::Itertools;
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::GenericParam;
 
 use super::super::utils::extract_fields;
 
 pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
-    let generics = {
-        let lt = &input.generics.lt_token;
-        let params = &input.generics.params;
-        let gt = &input.generics.gt_token;
-
-        quote! { #lt #params #gt }
-    };
-    let generic_params = {
-        let lt = &input.generics.lt_token;
-        let params = input
-            .generics
-            .params
-            .iter()
-            .filter_map(|p| match p {
-                GenericParam::Type(ty) => Some(&ty.ident),
-                _ => None,
-            })
-            .collect_vec();
-        let gt = &input.generics.gt_token;
-
-        let params = &params[..];
-        quote! { #lt #(#params),* #gt }
-    };
-    let where_clause = input.generics.where_clause.as_ref();
-    let (accessor, _field_ty, _) = extract_fields(input);
+    let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
+    let (accessor, _, _) = extract_fields(input);
 
     via.as_ref().map_or_else(
         || {
             quote! {
-                impl #generics ::core::ops::DerefMut for #struct_name #generic_params
+                impl #impl_generics ::core::ops::DerefMut for #struct_name #ty_generics
                     #where_clause
                 {
                     #[inline]
@@ -48,7 +23,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
         },
         |via| {
             quote! {
-                impl #generics ::core::ops::DerefMut for #struct_name #generic_params
+                impl #impl_generics ::core::ops::DerefMut for #struct_name #ty_generics
                     #where_clause
                 {
                     #[inline]

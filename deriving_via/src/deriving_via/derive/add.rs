@@ -7,37 +7,20 @@ use super::super::utils::extract_fields;
 
 pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
-    let generics = {
-        let lt = &input.generics.lt_token;
-        let params = &input.generics.params;
-        let gt = &input.generics.gt_token;
-
-        quote! { #lt #params #gt }
-    };
-    let generic_params = {
-        let lt = &input.generics.lt_token;
-        let params = input.generics.params.iter().filter_map(|p| match p {
-            GenericParam::Type(ty) => Some(&ty.ident),
-            _ => None,
-        });
-        let gt = &input.generics.gt_token;
-
-        quote! { #lt #(#params),* #gt }
-    };
-    let where_clause = &input.generics.where_clause;
+    let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
     let (accessor, _, constructor) = extract_fields(input);
 
     via.as_ref().map_or_else(
         || {
             quote! {
-                impl #generics std::ops::Add for #struct_name #generic_params #where_clause {
+                impl #impl_generics ::core::ops::Add for #struct_name #ty_generics #where_clause {
                     type Output = Self;
 
                     fn add(self, other: Self) -> Self {
                         #constructor((self.#accessor + other.#accessor).into())
                     }
                 }
-                impl #generics std::ops::Sub for #struct_name #generic_params #where_clause {
+                impl #impl_generics ::core::ops::Sub for #struct_name #ty_generics #where_clause {
                     type Output = Self;
 
                     fn sub(self, other: Self) -> Self {
@@ -51,13 +34,13 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
                 || {
                     quote! {
                         where
-                            Self: std::convert::From<<#via as std::ops::Add>::Output>,
+                            Self: ::core::convert::From<<#via as ::core::ops::Add>::Output>,
                     }
                 },
                 |where_clause| {
                     quote! {
                         #where_clause
-                            Self: std::convert::From<<#via as std::ops::Add>::Output>,
+                            Self: ::core::convert::From<<#via as ::core::ops::Add>::Output>,
                     }
                 },
             );
@@ -65,13 +48,13 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
                 || {
                     quote! {
                         where
-                            Self: std::convert::From<<#via as std::ops::Sub>::Output>,
+                            Self: std::convert::From<<#via as ::core::ops::Sub>::Output>,
                     }
                 },
                 |where_clause| {
                     quote! {
                         #where_clause
-                            Self: std::convert::From<<#via as std::ops::Sub>::Output>,
+                            Self: std::convert::From<<#via as ::core::ops::Sub>::Output>,
                     }
                 },
             );
@@ -89,7 +72,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
             };
 
             quote! {
-                impl #generics std::ops::Add for #struct_name #generic_params #where_clause_for_add {
+                impl #impl_generics ::core::ops::Add for #struct_name #ty_generics #where_clause_for_add {
                     type Output = Self;
 
                     fn add(self, other: Self) -> Self {
@@ -98,7 +81,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
                         (lhs.to_owned() + rhs.to_owned()).into()
                     }
                 }
-                impl #generics std::ops::Sub for #struct_name #generic_params #where_clause_for_sub {
+                impl #impl_generics ::core::ops::Sub for #struct_name #ty_generics #where_clause_for_sub {
                     type Output = Self;
 
                     fn sub(self, other: Self) -> Self {
