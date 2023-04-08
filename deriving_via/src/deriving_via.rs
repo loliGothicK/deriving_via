@@ -41,6 +41,7 @@ enum AvailableDerives {
     Iter,
     AddAssign,
     MulAssign,
+    Default,
 }
 
 mod keyword {
