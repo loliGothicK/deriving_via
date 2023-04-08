@@ -13,6 +13,8 @@ mod attribute;
 #[cfg(test)]
 mod const_generics;
 #[cfg(test)]
+mod default;
+#[cfg(test)]
 mod deserialize;
 #[cfg(test)]
 mod display;
