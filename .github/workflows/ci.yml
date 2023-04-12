@@ -34,6 +34,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           deny: warnings
+          working-directory: ./deriving_via
 
   test:
     needs: [ rustfmt, clippy ]
