@@ -18,6 +18,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           flags: --all
           args: --config-path=./.cargo-husky/hooks/rustfmt.toml
+          working-directory: ./deriving_via
 
   clippy:
     name: clippy check
