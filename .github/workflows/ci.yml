@@ -19,23 +19,8 @@ jobs:
           flags: --all
           args: --config-path=./.cargo-husky/hooks/rustfmt.toml
 
-  clippy:
-    name: clippy check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
-          components: clippy
-          override: true
-      - uses: LoliGothick/clippy-check@master
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          deny: warnings
-
   test:
-    needs: [ rustfmt, clippy ]
+    needs: [ rustfmt ]
     name: "Test: { target: ${{ matrix.os }}, channel: ${{ matrix.rust }} }"
     runs-on: ${{matrix.os}}
     strategy:
@@ -111,6 +96,21 @@ jobs:
 
       - name: Start sccache server
         run: sccache --start-server
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        env:
+          RUSTC_WRAPPER: sccache
+        with:
+          command: build
+
+      - name: Run clippy
+        uses: LoliGothick/clippy-check@master
+        env:
+          RUSTC_WRAPPER: sccache
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          deny: warnings
 
       - name: Run tests
         uses: actions-rs/cargo@v1
