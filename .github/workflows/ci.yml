@@ -118,7 +118,7 @@ jobs:
           RUSTC_WRAPPER: sccache
         with:
           command: test
-          args: --release --all-features
+          args: --all-features
 
       - name: Print sccache stats
         run: sccache --show-stats
