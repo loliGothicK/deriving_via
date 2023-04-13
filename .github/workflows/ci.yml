@@ -18,7 +18,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           flags: --all
           args: --config-path=./.cargo-husky/hooks/rustfmt.toml
-          working-directory: ./deriving_via
 
   test:
     needs: [ rustfmt ]
@@ -112,7 +111,6 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           deny: warnings
-          working-directory: ./deriving_via
 
       - name: Run tests
         uses: actions-rs/cargo@v1
