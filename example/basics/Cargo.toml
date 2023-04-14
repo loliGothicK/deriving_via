@@ -2,6 +2,7 @@
 name = "basics"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
 
 [dependencies]
 deriving_via = { path = "../../deriving_via" }
