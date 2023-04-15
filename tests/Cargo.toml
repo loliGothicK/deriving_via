@@ -2,8 +2,9 @@
 name = "tests"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
 
 [dependencies]
 deriving_via = { path = "../deriving_via" }
-serde = "1.0.157"
-serde_json = "1.0.94"
+serde = "1.0.160"
+serde_json = "1.0.96"

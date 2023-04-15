@@ -19,6 +19,18 @@ jobs:
           flags: --all
           args: --config-path=./.cargo-husky/hooks/rustfmt.toml
 
+  deny:
+    name: Run cargo-deny
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: EmbarkStudios/cargo-deny-action@v1
+        with:
+          rust-version: "1.68.2"
+          log-level: warn
+          command: check
+          arguments: --all-features
+
   test:
     needs: [ rustfmt ]
     name: "Test: { target: ${{ matrix.os }}, channel: ${{ matrix.rust }} }"
