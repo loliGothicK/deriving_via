@@ -4,6 +4,7 @@
 [![Matrix Test](https://github.com/LoliGothick/deriving_via/actions/workflows/ci.yml/badge.svg)](https://github.com/LoliGothick/deriving_via/actions/workflows/ci.yml)
 [![crate-name at crates.io](https://img.shields.io/crates/v/deriving_via.svg)](https://crates.io/crates/deriving_via)
 [![crate-name at docs.rs](https://docs.rs/deriving_via/badge.svg)](https://docs.rs/deriving_via)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FLoliGothick%2Fderiving_via.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FLoliGothick%2Fderiving_via?ref=badge_shield)
 ------------------------
 
 This library is a slightly more convenient version of `derive` for newtype pattern.
@@ -189,3 +190,7 @@ DerivingVia using transitive case of _Type Coercion_.
 According to rumours, transitive _Type Coercion_ is not fully supported yet.
 
 See: https://doc.rust-lang.org/reference/type-coercions.html#coercion-types
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FLoliGothick%2Fderiving_via.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FLoliGothick%2Fderiving_via?ref=badge_large)
