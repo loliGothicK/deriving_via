@@ -12,7 +12,7 @@ proc-macro = true
 
 [dependencies]
 proc-macro-error = "1.0.4"
-proc-macro2 = "1.0.56"
+proc-macro2 = "1.0.57"
 quote = "1.0.27"
 syn = { version = "2.0.16", features = ["full"] }
 typed-builder = "0.14.0"
