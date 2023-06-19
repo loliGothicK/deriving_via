@@ -17,7 +17,7 @@ quote = "1.0.28"
 syn = { version = "2.0.18", features = ["full"] }
 typed-builder = "0.14.0"
 strum = "0.25.0"
-strum_macros = "0.24.3"
+strum_macros = "0.25.0"
 itertools = "0.10.5"
 deriving-via-impl = "0.1.0"
 
