@@ -16,6 +16,7 @@ jobs:
       - uses: LoliGothick/rustfmt-check@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          toolchain: nightly-${{ env.date }}
           flags: --all
           args: --config-path=./.cargo-husky/hooks/rustfmt.toml
 
