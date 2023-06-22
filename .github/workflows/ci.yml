@@ -8,9 +8,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - run: echo "date=$(date -d '1 month ago' +'%Y-%m-%d')" >> $GITHUB_ENV
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly 1 months ago
+          toolchain: "nightly-${{ env.date }}"
           components: rustfmt
       - uses: LoliGothick/rustfmt-check@master
         with:
