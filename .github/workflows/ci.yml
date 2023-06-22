@@ -8,14 +8,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
+      - run: echo "date=$(date -d '1 month ago' +'%Y-%m-%d')" >> $GITHUB_ENV
+      - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly
+          toolchain: "nightly-${{ env.date }}"
           components: rustfmt
-          override: true
       - uses: LoliGothick/rustfmt-check@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          toolchain: nightly-${{ env.date }}
           flags: --all
           args: --config-path=./.cargo-husky/hooks/rustfmt.toml
 
@@ -26,7 +27,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: EmbarkStudios/cargo-deny-action@v1
         with:
-          rust-version: "1.68.2"
+          rust-version: 1.70.0
           log-level: warn
           command: check
           arguments: --all-features
@@ -69,11 +70,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Setup Rust ${{ matrix.rust }}
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: ${{ matrix.rust }}
-          override: true
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Cache cargo registry
         uses: actions/cache@v3
@@ -101,7 +98,7 @@ jobs:
 
       - if: ${{ steps.restore-sccache.outputs.cache-hit == false }}
         name: Install sccache
-        uses: actions-rs/cargo@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
           command: install
           args: --version=${{ env.SCCACHE_VERSION }} --force sccache
@@ -110,7 +107,7 @@ jobs:
         run: sccache --start-server
 
       - name: Build
-        uses: actions-rs/cargo@v1
+        uses: dtolnay/rust-toolchain@stable
         env:
           RUSTC_WRAPPER: sccache
         with:
@@ -125,7 +122,7 @@ jobs:
           deny: warnings
 
       - name: Run tests
-        uses: actions-rs/cargo@v1
+        uses: dtolnay/rust-toolchain@stable
         env:
           RUSTC_WRAPPER: sccache
         with:
