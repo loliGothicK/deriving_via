@@ -181,6 +181,8 @@ struct Target(Base);
 - impls
   - Iter
     - requires: `Base: IntoIterator and Base dereferenceable to slice` or `(via: <Type>), Type: IntoIterator and Type dereferenceable to slice`
+  - IntoInner
+    - requires: `Base: Clone` or `(via: <Type>), Type: Clone`
 
 
 ## Caveat
