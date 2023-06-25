@@ -42,6 +42,7 @@ enum AvailableDerives {
     AddAssign,
     MulAssign,
     Default,
+    IntoInner,
 }
 
 mod keyword {
