@@ -11,7 +11,7 @@ jobs:
       - run: echo "date=$(date -d '1 month ago' +'%Y-%m-%d')" >> $GITHUB_ENV
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: "nightly-${{ env.date }}"
+          toolchain: nightly-${{ env.date }}
           components: rustfmt
       - uses: LoliGothick/rustfmt-check@master
         with:

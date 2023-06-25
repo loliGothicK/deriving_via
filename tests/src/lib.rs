@@ -35,6 +35,8 @@ mod index_mut;
 #[cfg(test)]
 mod into;
 #[cfg(test)]
+mod into_inner;
+#[cfg(test)]
 mod into_iterator;
 #[cfg(test)]
 mod iter;
