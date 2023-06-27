@@ -222,13 +222,22 @@ impl DerivingAttributes {
 }
 
 impl Transitive {
-    fn into_token_stream(self, _: &syn::DeriveInput) -> TokenStream {
+    fn into_token_stream(self, input: &syn::DeriveInput) -> TokenStream {
         if self.types.len() < 3 {
             return syn::Error::new_spanned(self.types, "transitive must have three or more types")
                 .to_compile_error();
         }
         let from_type = self.types.first().unwrap();
         let self_type = self.types.last().unwrap();
+
+        if input.ident != self_type.to_token_stream().to_string() {
+            return syn::Error::new_spanned(
+                self_type,
+                "transitive must end with the same type as the derive input",
+            )
+            .to_compile_error();
+        }
+
         let types = &self.types.iter().collect::<Vec<_>>()[1..];
         quote! {
             impl From<#from_type> for #self_type {
