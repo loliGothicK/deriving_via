@@ -6,9 +6,9 @@
 [![crate-name at docs.rs](https://docs.rs/deriving_via/badge.svg)](https://docs.rs/deriving_via)
 ------------------------
 
-This library is a slightly more convenient version of [`derive_more`](https://docs.rs/derive_more/latest/derive_more/) for newtype pattern.
+This library is a slightly more convenient version of `derive` for newtype pattern.
 
-=> [Deriving via](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/deriving_via.html)
+=> See also [Deriving via](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/deriving_via.html)
 
 ## Basic Usage
 
@@ -110,7 +110,7 @@ pub struct B(A);
 
 #[derive(DerivingVia)]
 #[deriving(From, Add(via: i32), Display(via: i32))]
-#[transitive(i32 -> A -> B -> C)]
+#[transitive(i32 -> A -> B -> C)] // <- must end with `Self` type (C).
 pub struct C(B);
 
 fn main() {
@@ -183,7 +183,6 @@ struct Target(Base);
     - requires: `Base: IntoIterator and Base dereferenceable to slice` or `(via: <Type>), Type: IntoIterator and Type dereferenceable to slice`
   - IntoInner
     - requires: `Base: Clone` or `(via: <Type>), Type: Clone`
-
 
 ## Caveat
 

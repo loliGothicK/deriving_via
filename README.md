@@ -110,7 +110,7 @@ pub struct B(A);
 
 #[derive(DerivingVia)]
 #[deriving(From, Add(via: i32), Display(via: i32))]
-#[transitive(i32 -> A -> B -> C)]
+#[transitive(i32 -> A -> B -> C)] // <- must end with `Self` type (C).
 pub struct C(B);
 
 fn main() {
