@@ -11,7 +11,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
 
     quote! {
         impl #impl_generics #struct_name #ty_generics #where_clause {
-            fn into_inner(self) -> #inner
+            pub fn into_inner(self) -> #inner
                 where #inner: ::core::fmt::Debug
             {
                 let inner: &#inner = &self.#accessor;
