@@ -6,87 +6,108 @@
 [![crate-name at docs.rs](https://docs.rs/deriving_via/badge.svg)](https://docs.rs/deriving_via)
 ------------------------
 
-This library is a slightly more convenient version of [`derive_more`](https://docs.rs/derive_more/latest/derive_more/) for newtype pattern.
+This library is a slightly more convenient version of `derive` for newtype pattern.
+The library provides features such as Generalised Newtype Deriving, which allows methods of the base type of newtype to be invoked by transitive application of `Deref` traits.
+It also allows derives to be generated based on a specific base implementation using the _Deriving Via_ feature.
+=> See also [Generalised derived instances for newtypes](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/newtype_deriving.html) and [Deriving via](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/deriving_via.html).
 
-=> [Deriving via](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/deriving_via.html)
+[The Rust Reference](https://doc.rust-lang.org/std/ops/trait.Deref.html) says:
+> Deref should only be implemented for smart pointers to avoid confusion.
 
-## Basic Usage
+However, this is the only way to do it, as there is no mechanism such as Generalised Newtype Deriving available.
+I consider it acceptable to use `Deref` for the newtype pattern.
+Please use this library if and only if you agree with this idea.
 
-`#[derive(DerivingVia)]` and then write the `#[deriving]` attribute on struct and list the trait you want to derive in it.
+## Generalised Newtype Deriving by Deref trait
 
-### simple
-
-Derives `From<i32> for D` and `Display for D`.
-
-```rust
-#[derive(DerivingVia)]
-#[deriving(From, Display)]
-pub struct D(i32);
-```
-
-### with generics
-
-```rust
-#[derive(DerivingVia)]
-#[deriving(From, Display)]
-pub struct D<T: Display>(T);
-```
-
-### with newtype pattern
-
-If you have more than one field, specify `#[underlying]` for one.
-Note that the other fields require default initialisation by the `Default` trait.
-
-```rust
-#[derive(DerivingVia)]
-#[deriving(From, Display)]
-pub struct Test<T>(#[underlying] i32, std::marker::PhantomData<T>);
-```
-
-## Syntax
-
-Derive `DerivingVia` and list the traits you want to derive in the `#[deriving]` attribute.
-
-```rust
-#[derive(DerivingVia)]
-#[deriving(<Derive>...)]
-struct Target(Base);
-```
-
-The syntax of `<Derive>` is defined as follows.
-
-```text
-Derive := <Trait> | <Trait>(via: <Type>)
-```
-
-## Deriving Via
-
-Using the deriving via feature, it is possible to generate derives from the impl of a base of a multi-layered wrapped type.
-
-`DerivingVia` uses transitive type coercion for type conversion.
-All newtypes must be dereferenceable to the underlying type.
-Therefore, `DerivingVia` automatically generates a `Deref` trait.
+The `DerivingVia` macro generates the `Deref` trait.
+Therefore, repeatedly dereferencing the receiver-type even if the method call is directly ineligible as a syntax.
+In other words, if the type derives `DerivingVia`, it can be treated as an _UNDERLING TYPE_.
+This works for method calls in general. This is similar to what smart pointers do.
+Types that derive `DerivingVia` will behave as _Smart Wrappers_.
 
 ### Example
 
 ```rust
+#[derive(DerivingVia)]
+pub struct Foo(i32);
+
+fn main() {
+  let foo = Foo(42);
+
+  // This works because of Deref trait.
+  // ToOwned trait is implemented for i32.
+  // Foo is dereferenced to i32 and to_owned for i32 is called. 
+  let i: i32 = foo.to_owned();
+}
+```
+
+`Foo` desn't implement `ToOwned` trait, but `i32` implements `ToOwned` trait.
+`foo.to_owned()` will deref if it doesn't work directly.
+`foo` is dereferenced to `i32` and `to_owned()` is called for `i32`.
+
+## Deriving Via
+
+Using the deriving via feature, it is possible to generate derives from the impl of a **specific** base of a multi-layered wrapped type.
+
+### Example
+
+This example is not use _Deriving Via_ feature.
+
+```rust
+use std::fmt::Display;
+
 use deriving_via::DerivingVia;
 
 #[derive(DerivingVia)]
 pub struct A(i32);
 
+impl Display for A {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "A({})", self.0)
+  }
+}
+
 #[derive(DerivingVia)]
 pub struct B(A);
 
-#[derive(DerivingVia)]
-#[deriving(Display(via: i32))]
-pub struct C(B);
-
 fn main() {
-  let c = C(B(A(42)));
-  println!("{c}"); // 42
+  let b = B(A(42));
+
+  // `b.to_string()` uses `A::Display` impl (most nearest impl). 
+  assert_eq!(b.to_string(), "A(42)");
 }
 ```
+
+This example is use _Deriving Via_ feature.
+`B` derives `Display` trait from `i32` impl.
+
+```rust
+use std::fmt::Display;
+
+use deriving_via::DerivingVia;
+
+#[derive(DerivingVia)]
+pub struct A(i32);
+
+impl Display for A {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "A({})", self.0)
+  }
+}
+
+#[derive(DerivingVia)]
+#[deriving(Display(via: i32))] // a new line
+pub struct B(A);
+
+fn main() {
+  let b = B(A(42));
+
+  // `b.to_string()` uses `B::Display` impl directly.
+  assert_eq!(b.to_string(), "42");
+}
+```
+## transitive attribute
 
 `Deref` trait works transitive, but how we re-constructs a `Self` type?
 Unfortunately, no convenience mechanism exists in the language,
@@ -114,7 +135,7 @@ pub struct B(A);
 pub struct C(B);
 
 fn main() {
-  let c = C(B(A(42))) + C(B(A(42)));
+  let c: C = C(B(A(42))) + C(B(A(42)));
   println!("{c}");
 }
 ```
@@ -183,7 +204,6 @@ struct Target(Base);
     - requires: `Base: IntoIterator and Base dereferenceable to slice` or `(via: <Type>), Type: IntoIterator and Type dereferenceable to slice`
   - IntoInner
     - requires: `Base: Clone` or `(via: <Type>), Type: Clone`
-
 
 ## Caveat
 
