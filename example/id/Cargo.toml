@@ -5,10 +5,13 @@ edition = "2021"
 license = "MIT"
 
 [dependencies]
-deriving_via = { path = "../../deriving_via" }
 anyhow = "1.0.71"
+deriving_via = { path = "../../deriving_via" }
 
 [dev-dependencies.cargo-husky]
 version = "1"
 default-features = false # Disable features which are enabled by default
 features = ["user-hooks"]
+
+[package.metadata.cargo-udeps.ignore]
+development = ["cargo-husky"]

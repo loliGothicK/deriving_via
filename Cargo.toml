@@ -2,9 +2,9 @@
 members = [
     "deriving_via",
     "deriving_via_impl",
-    "tests",
     "example/basics",
-    "example/serialize",
-    "example/id",
     "example/gnd",
+    "example/id",
+    "example/serialize",
+    "tests",
 ]

@@ -13,3 +13,7 @@ serde_json = "1.0.99"
 version = "1"
 default-features = false # Disable features which are enabled by default
 features = ["user-hooks"]
+
+[package.metadata.cargo-udeps.ignore]
+normal = ["serde", "serde_json"]
+development = ["cargo-husky"]

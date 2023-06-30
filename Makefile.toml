@@ -4,7 +4,7 @@ default_to_workspace = false
 
 [env]
 __CARGO_FIX_YOLO=1
-REPOSITORY_ROOT = { script = ["git rev-parse --show-superproject-working-tree --show-toplevel"] }
+REPOSITORY_ROOT = { script = [ "git rev-parse --show-superproject-working-tree --show-toplevel" ] }
 
 [tasks.fix]
 command = "cargo"
@@ -19,10 +19,21 @@ args = [ "nextest", "run" ]
 command = "cargo"
 args = [ "clippy", "--", "-D", "warnings" ]
 
+[tasks.udeps]
+install_crate = { crate_name = "cargo-udeps" }
+toolchain = "nightly"
+command = "cargo"
+args = [ "udeps", "--all-targets", "--all-features" ]
+
+[tasks.sort]
+install_crate = { crate_name = "cargo-sort" }
+command = "cargo"
+args = ["sort", "-wg"]
+
 [tasks.format]
 toolchain = "nightly"
 command = "cargo"
 args = [ "fmt", "--", "--config-path=${REPOSITORY_ROOT}/.cargo-husky/hooks/rustfmt.toml", "--emit=files" ]
 
 [tasks.pretty]
-dependencies = ["fix", "test", "lint", "format"]
+dependencies = [ "fix", "test", "lint", "format" ]
