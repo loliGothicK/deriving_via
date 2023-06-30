@@ -6,4 +6,5 @@ members = [
     "example/basics",
     "example/serialize",
     "example/id",
+    "example/gnd",
 ]
