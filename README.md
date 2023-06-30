@@ -43,7 +43,7 @@ fn main() {
 ```
 
 `Foo` desn't implement `ToOwned` trait, but `i32` implements `ToOwned` trait.
-`foo.to_owned()` will deref if it doesn't work directly.
+`foo.to_owned()` will deref receiver (`foo`) if it doesn't work directly.
 `foo` is dereferenced to `i32` and `to_owned()` is called for `i32`.
 
 ## Deriving Via
