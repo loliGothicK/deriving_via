@@ -16,7 +16,7 @@ If you are comfortable with this approach, this library is for you.
 
 _deriving via_ aims to be your tool of choice for handling newtype patterns in Rust. The library makes use of a `DerivingVia` macro to generate `Deref` trait implementations, which allow your types to behave as _Smart Wrappers_ by automatically dereferencing their _underlying types_.
 
-Our library also introduces features such as explicit Generalised Newtype Deriving using the `#[deriving]` attribute and a way to specify base types for derive generation using the `#[deriving(Trait(via: Type))]` mechanism.
+This library also introduces features such as explicit Generalised Newtype Deriving using the `#[deriving]` attribute and a way to specify base types for derive generation using the `#[deriving(Trait(via: Type))]` mechanism.
 
 ## Generalised Newtype Deriving by Deref trait (in general)
 
