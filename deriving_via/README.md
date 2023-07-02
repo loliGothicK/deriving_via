@@ -8,20 +8,15 @@
 
 ---
 
-This library is a slightly more convenient version of `derive` for newtype patterns.
-The `DerivingVia` derive macro is developed to do things like Deriving via in Haskell.
-That is, it can generate an implementation of a wrapped struct using an implementation of any base type of its wrapped struct.
-The `DerivingVia` derive macro relies entirely on the `Deref` trait for its mechanics, therefore that it can automatically call methods of the dereferenced type.
+Welcome to _Deriving via_, a library that offers the ability to adopt the Powerful Newtype Pattern in Rust. This library provides a practical way to automatically derive implementations for newtype wrappers, in the spirit of Haskell's [GeneralisedNewtypeDeriving](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/newtype_deriving.html) and [Deriving via](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/deriving_via.html) extensions.
 
-=> See also [Generalised derived instances for newtypes](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/newtype_deriving.html) and [Deriving via](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/deriving_via.html).
+According to [The Rust Reference](https://doc.rust-lang.org/std/ops/trait.Deref.html), the `Deref` trait is typically only implemented for smart pointers in Rust. However, this library deviates from that policy.
+This library uses the `Deref` trait as a hack to implement the newtype pattern.
+If you are comfortable with this approach, this library is for you.
 
-[The Rust Reference](https://doc.rust-lang.org/std/ops/trait.Deref.html) says:
+_deriving via_ aims to be your tool of choice for handling newtype patterns in Rust. The library makes use of a `DerivingVia` macro to generate `Deref` trait implementations, which allow your types to behave as _Smart Wrappers_ by automatically dereferencing their _underlying types_.
 
-> Deref should only be implemented for smart pointers to avoid confusion.
-
-However, this is the only way to do it, as there is no mechanism such as Generalised Newtype Deriving available.
-I consider it acceptable to use `Deref` for the newtype pattern.
-Please use this library if and only if you agree with this idea.
+Our library also introduces features such as explicit Generalised Newtype Deriving using the `#[deriving]` attribute, and a way to specify base types for derive generation using the `#[deriving(Trait(via: Type)`)]` mechanism.
 
 ## Generalised Newtype Deriving by Deref trait (in general)
 
