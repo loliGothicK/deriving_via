@@ -1,21 +1,24 @@
-![](https://raw.githubusercontent.com/LoliGothick/mitama-lab-static/main/public/DerivingVia.svg)
+![logo](https://raw.githubusercontent.com/LoliGothick/mitama-lab-static/main/public/DerivingVia.svg)
 
-------------------------
+---
+
 [![Matrix Test](https://github.com/LoliGothick/deriving_via/actions/workflows/ci.yml/badge.svg)](https://github.com/LoliGothick/deriving_via/actions/workflows/ci.yml)
 [![crate-name at crates.io](https://img.shields.io/crates/v/deriving_via.svg)](https://crates.io/crates/deriving_via)
 [![crate-name at docs.rs](https://docs.rs/deriving_via/badge.svg)](https://docs.rs/deriving_via)
-------------------------
+
+---
 
 This library is a slightly more convenient version of `derive` for newtype patterns.
 The library provides features such as Generalised Newtype Deriving, which allows methods of the base type of newtype to be invoked by transitive application of `Deref` traits.
-This library also allows derives to be generated based on a specific base implementation using the [Deriving Via](#Deriving-Via) feature.
+This library also allows derives to be generated based on a specific base implementation using the [Deriving Via](#deriving-via) feature.
 => See also [Generalised derived instances for newtypes](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/newtype_deriving.html) and [Deriving via](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/deriving_via.html).
 
 [The Rust Reference](https://doc.rust-lang.org/std/ops/trait.Deref.html) says:
+
 > Deref should only be implemented for smart pointers to avoid confusion.
 
 However, this is the only way to do it, as there is no mechanism such as Generalised Newtype Deriving available.
-I consider it acceptable to use `Deref` for the newtype pattern.
+I consider it acceptable to use `Deref` for the newtype patterns.
 Please use this library if and only if you agree with this idea.
 
 ## Generalised Newtype Deriving by Deref trait (in general)
@@ -26,10 +29,10 @@ in other words, if the type is derived `DerivingVia`, it can be treated as an _U
 This works for method calls in general. This is similar to what smart pointers do.
 Types that derive `DerivingVia` will behave as _Smart Wrappers_.
 
-### Example
+### Example (Deref in general)
 
 `DerivingVia` macro generates `Deref` trait implementation.
-`Deref` trait is used for method call.
+`Deref` trait is used for method calls.
 
 ```rust
 use deriving_via::DerivingVia;
@@ -45,8 +48,8 @@ fn main() {
 ```
 
 `Foo` doesn't implement `Clone` trait, but `i32` implements `Clone` trait.
-`foo.to_owned()` will dereference receiver (`foo`) if it doesn't work directly.
-`foo` is dereferenced to `i32` and `to_owned()` is called for `i32`.
+`foo.to_owned()` will dereference the receiver (`foo`) if it doesn't work directly.
+`foo`is dereferenced to`i32`and`to_owned()`is called for`i32`.
 
 ```rust
 pub struct Foo(i32);
@@ -64,18 +67,38 @@ fn main() {
 
   // This works because of Deref trait.
   // ToOwned trait is implemented for i32.
-  // Foo is dereferenced to i32 and to_owned for i32 is called. 
+  // Foo is dereferenced to i32 and to_owned for i32 is called.
   let i: i32 = foo.to_owned();
+}
+```
+
+## Explicit Generalised Newtype Deriving
+
+`#[deriving]` attribute is available for explicit Generalised Newtype Deriving.
+
+### Example (GND)
+
+```rust
+use deriving_via::DerivingVia;
+
+#[derive(DerivingVia)]
+#[deriving(Display)]
+pub struct Foo(i32);
+
+fn main() {
+  let foo = Foo(42);
+
+  println!("{foo}"); // 42
 }
 ```
 
 ## Deriving Via
 
-Using the deriving via feature, it is possible to generate derives from the impl of a **specific** base of a multi-layered wrapped type.
+Using the _Deriving via_ feature, it is possible to generate derives from the implementation of a **specific** base of a multi-layered wrapped type.
 
-### Example
+### Example (Deriving via)
 
-This example does not use _Deriving Via_ feature.
+This example does not use _Deriving via_ feature.
 
 ```rust
 use std::fmt::Display;
@@ -97,13 +120,13 @@ pub struct B(A);
 fn main() {
   let b = B(A(42));
 
-  // `b.to_string()` uses `A::Display` impl (most nearest impl). 
+  // `b.to_string()` uses `A::Display` impl (most nearest impl).
   assert_eq!(b.to_string(), "A(42)");
 }
 ```
 
 This example uses _Deriving Via_ feature.
-`B` derives `Display` trait from `i32` impl.
+`B` derives `Display` trait from `impl Display for i32`.
 
 ```rust
 use std::fmt::Display;
@@ -133,18 +156,18 @@ fn main() {
 
 ## transitive attribute
 
-By the way, when you want to derive `Add`, you can deref up to `i32`, but not from `i32` back to `Self`.
+By the way, when you want to derive `Add`, you can dereference up to `i32`, but not from `i32` back to `Self`.
 Therefore, you need to derive `From` from `i32` to `Self`.
 You also need to specify the `#[transitive]` attribute to specify the order in which to return.
 Some traits require `#[transitive]` attribute (see Available Derives section).
 
 Note: `From<T> for T` is implemented by [generic implementations](https://doc.rust-lang.org/std/convert/trait.From.html#generic-implementations).
 
-### Example
+### Example (transitive)
 
 The following example derives `Add` and `Display` for `C`.
-To implement `Display`, it is sufficient to deref `C` to `i32`.
-However, to implement `Add`, it is necessary to deref from `i32` back to `C`.
+To implement `Display`, it is sufficient to dereference `C` to `i32`.
+However, to implement `Add`, it is necessary to dereference from `i32` back to `C`.
 To do so, you need to derive `From` for every newtype.
 In addition, you need to specify the order in which to return from `i32` to `C` using the `#[transitive]` attribute.
 
@@ -239,7 +262,7 @@ struct Target(Base);
 
 ## Caveat
 
-DerivingVia using transitive case of _Type Coercion_.
+`DerivingVia` using a transitive case of _Type Coercion_.
 According to rumours, transitive _Type Coercion_ is not fully supported yet.
 
-See: https://doc.rust-lang.org/reference/type-coercions.html#coercion-types
+See: <https://doc.rust-lang.org/reference/type-coercions.html#coercion-types>
