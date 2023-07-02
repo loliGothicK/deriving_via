@@ -9,8 +9,10 @@
 ---
 
 This library is a slightly more convenient version of `derive` for newtype patterns.
-The library provides features such as Generalised Newtype Deriving, which allows methods of the base type of newtype to be invoked by transitive application of `Deref` traits.
-This library also allows derives to be generated based on a specific base implementation using the [Deriving Via](#deriving-via) feature.
+The `DerivingVia` derive macro is developed to do things like Deriving via in Haskell.
+That is, it can generate an implementation of a wrapped struct using an implementation of any base type of its wrapped struct.
+The `DerivingVia` derive macro relies entirely on the `Deref` trait for its mechanics, therefore that it can automatically call methods of the dereferenced type.
+
 => See also [Generalised derived instances for newtypes](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/newtype_deriving.html) and [Deriving via](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/deriving_via.html).
 
 [The Rust Reference](https://doc.rust-lang.org/std/ops/trait.Deref.html) says:
@@ -18,7 +20,7 @@ This library also allows derives to be generated based on a specific base implem
 > Deref should only be implemented for smart pointers to avoid confusion.
 
 However, this is the only way to do it, as there is no mechanism such as Generalised Newtype Deriving available.
-I consider it acceptable to use `Deref` for the newtype patterns.
+I consider it acceptable to use `Deref` for the newtype pattern.
 Please use this library if and only if you agree with this idea.
 
 ## Generalised Newtype Deriving by Deref trait (in general)
@@ -29,10 +31,10 @@ in other words, if the type is derived `DerivingVia`, it can be treated as an _U
 This works for method calls in general. This is similar to what smart pointers do.
 Types that derive `DerivingVia` will behave as _Smart Wrappers_.
 
-### Example (Deref in general)
+### Example
 
 `DerivingVia` macro generates `Deref` trait implementation.
-`Deref` trait is used for method calls.
+Therefore, even if the method call is not directly syntactically valid, the receiver type can be repeatedly dereferenced.
 
 ```rust
 use deriving_via::DerivingVia;
@@ -47,9 +49,8 @@ fn main() {
 }
 ```
 
-`Foo` doesn't implement `Clone` trait, but `i32` implements `Clone` trait.
-`foo.to_owned()` will dereference the receiver (`foo`) if it doesn't work directly.
-`foo`is dereferenced to`i32`and`to_owned()`is called for`i32`.
+`Foo` doesn't implement `Clone` trait, therefore `foo.to_owned()` doesn't work directly.
+However, `Foo` implements `Deref` trait; therefore `foo` is dereferenced to `i32` and `to_owned()` is called for `i32`.
 
 ```rust
 pub struct Foo(i32);
@@ -92,7 +93,7 @@ fn main() {
 }
 ```
 
-## Deriving Via
+## Deriving via
 
 Using the _Deriving via_ feature, it is possible to generate derives from the implementation of a **specific** base of a multi-layered wrapped type.
 
@@ -125,8 +126,8 @@ fn main() {
 }
 ```
 
-This example uses _Deriving Via_ feature.
-`B` derives `Display` trait from `impl Display for i32`.
+This example uses _Deriving via_ feature.
+`B` derives `Display` trait from `i32` impl.
 
 ```rust
 use std::fmt::Display;
@@ -262,7 +263,7 @@ struct Target(Base);
 
 ## Caveat
 
-`DerivingVia` using a transitive case of _Type Coercion_.
+DerivingVia using a transitive case of _Type Coercion_.
 According to rumours, transitive _Type Coercion_ is not fully supported yet.
 
 See: <https://doc.rust-lang.org/reference/type-coercions.html#coercion-types>
