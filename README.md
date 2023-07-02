@@ -6,9 +6,9 @@
 [![crate-name at docs.rs](https://docs.rs/deriving_via/badge.svg)](https://docs.rs/deriving_via)
 ------------------------
 
-This library is a slightly more convenient version of `derive` for newtype pattern.
+This library is a slightly more convenient version of `derive` for newtype patterns.
 The library provides features such as Generalised Newtype Deriving, which allows methods of the base type of newtype to be invoked by transitive application of `Deref` traits.
-It also allows derives to be generated based on a specific base implementation using the _Deriving Via_ feature.
+This library also allows derives to be generated based on a specific base implementation using the [Deriving Via](#Deriving-Via) feature.
 => See also [Generalised derived instances for newtypes](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/newtype_deriving.html) and [Deriving via](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/deriving_via.html).
 
 [The Rust Reference](https://doc.rust-lang.org/std/ops/trait.Deref.html) says:
@@ -18,19 +18,46 @@ However, this is the only way to do it, as there is no mechanism such as General
 I consider it acceptable to use `Deref` for the newtype pattern.
 Please use this library if and only if you agree with this idea.
 
-## Generalised Newtype Deriving by Deref trait
+## Generalised Newtype Deriving by Deref trait (in general)
 
-The `DerivingVia` macro generates the `Deref` trait.
-Therefore, repeatedly dereferencing the receiver-type even if the method call is directly ineligible as a syntax.
-In other words, if the type derives `DerivingVia`, it can be treated as an _UNDERLING TYPE_.
+The `DerivingVia` macro generates the `Deref` trait implementation.
+Therefore, even if the method call is not directly syntactically valid, the receiver type can be repeatedly dereferenced;
+in other words, if the type is derived `DerivingVia`, it can be treated as an _UNDERLYING TYPE_.
 This works for method calls in general. This is similar to what smart pointers do.
 Types that derive `DerivingVia` will behave as _Smart Wrappers_.
 
 ### Example
 
+`DerivingVia` macro generates `Deref` trait implementation.
+`Deref` trait is used for method call.
+
 ```rust
+use deriving_via::DerivingVia;
+
 #[derive(DerivingVia)]
 pub struct Foo(i32);
+
+fn main() {
+  let foo = Foo(42);
+
+  let i: i32 = foo.to_owned(); // This works.
+}
+```
+
+`Foo` doesn't implement `Clone` trait, but `i32` implements `Clone` trait.
+`foo.to_owned()` will dereference receiver (`foo`) if it doesn't work directly.
+`foo` is dereferenced to `i32` and `to_owned()` is called for `i32`.
+
+```rust
+pub struct Foo(i32);
+
+impl Deref for Foo {
+  type Target = i32;
+
+  fn deref(&self) -> &Self::Target {
+    &self.0
+  }
+}
 
 fn main() {
   let foo = Foo(42);
@@ -42,17 +69,13 @@ fn main() {
 }
 ```
 
-`Foo` desn't implement `ToOwned` trait, but `i32` implements `ToOwned` trait.
-`foo.to_owned()` will deref receiver (`foo`) if it doesn't work directly.
-`foo` is dereferenced to `i32` and `to_owned()` is called for `i32`.
-
 ## Deriving Via
 
 Using the deriving via feature, it is possible to generate derives from the impl of a **specific** base of a multi-layered wrapped type.
 
 ### Example
 
-This example is not use _Deriving Via_ feature.
+This example does not use _Deriving Via_ feature.
 
 ```rust
 use std::fmt::Display;
@@ -79,7 +102,7 @@ fn main() {
 }
 ```
 
-This example is use _Deriving Via_ feature.
+This example uses _Deriving Via_ feature.
 `B` derives `Display` trait from `i32` impl.
 
 ```rust
@@ -107,14 +130,23 @@ fn main() {
   assert_eq!(b.to_string(), "42");
 }
 ```
+
 ## transitive attribute
 
-`Deref` trait works transitive, but how we re-constructs a `Self` type?
-Unfortunately, no convenience mechanism exists in the language,
-so it is necessary to teach how to revert using the `#[transitive]` attribute.
-Some trait require `#[transitive]` attribute (see Available Derives section).
+By the way, when you want to derive `Add`, you can deref up to `i32`, but not from `i32` back to `Self`.
+Therefore, you need to derive `From` from `i32` to `Self`.
+You also need to specify the `#[transitive]` attribute to specify the order in which to return.
+Some traits require `#[transitive]` attribute (see Available Derives section).
+
+Note: `From<T> for T` is implemented by [generic implementations](https://doc.rust-lang.org/std/convert/trait.From.html#generic-implementations).
 
 ### Example
+
+The following example derives `Add` and `Display` for `C`.
+To implement `Display`, it is sufficient to deref `C` to `i32`.
+However, to implement `Add`, it is necessary to deref from `i32` back to `C`.
+To do so, you need to derive `From` for every newtype.
+In addition, you need to specify the order in which to return from `i32` to `C` using the `#[transitive]` attribute.
 
 ```rust
 use std::fmt::Display;
@@ -158,7 +190,7 @@ struct Target(Base);
     - requires: `Base: Eq` or `(via = <Type>) and Type: Eq`
   - `Ord`
     - requires: `Base: Ord` or `(via = <Type>) and Type: Ord`
-  - `Add`-lile (Add, Sub)
+  - `Add`-like (Add, Sub)
     - requires: `Base: From<Underlying>`
     - limitations: one hop or `#[transitive]`
   - `Mul`-like (Mul, Div)
