@@ -15,7 +15,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
                     #where_clause
                 {
                     fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-                        write!(f, "{}", self. #accessor .to_string())
+                        self. #accessor .fmt(f)
                     }
                 }
             }

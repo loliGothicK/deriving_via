@@ -11,7 +11,6 @@ pub struct B(A);
 
 #[derive(DerivingVia)]
 #[deriving(From, Serialize(via: i32))]
-#[transitive(i32 -> A -> B -> C)]
 pub struct C(B);
 
 #[derive(DerivingVia)]

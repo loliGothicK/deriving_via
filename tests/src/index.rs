@@ -9,11 +9,11 @@ pub struct A(Vec<i32>);
 pub struct B(A);
 
 #[derive(DerivingVia)]
-#[deriving(Index, FromIterator(via: T))]
+#[deriving(FromIterator(via: T))]
 pub struct C<T>(Vec<T>);
 
 #[derive(DerivingVia)]
-#[deriving(Index(via: Vec<T>), From)]
+#[deriving(Index, From)]
 pub struct D<T>(C<T>);
 
 #[test]
