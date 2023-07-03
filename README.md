@@ -13,7 +13,7 @@ This library provides a practical way to automatically derive implementations fo
 
 _deriving via_ aims to be your tool of choice for handling newtype patterns in Rust. The library makes use of a `DerivingVia` macro to generate `Deref` trait implementations, which allow your types to behave as _Smart Wrappers_ by automatically dereferencing into their _underlying types_.
 
-Our library also introduces features such as explicit Generalised Newtype Deriving using the `#[deriving]` attribute, and a way to specify base types for derive generation using the `#[deriving(Trait(via: Type))]` syntax.
+Our library also introduces features such as explicit Generalised Newtype Deriving using the `#[deriving]` attribute, and a way to specify base types for trait implementation generation using the `#[deriving(Trait(via: Type))]` syntax.
 
 According to [The Rust Reference](https://doc.rust-lang.org/std/ops/trait.Deref.html), the `Deref` trait is typically only implemented for smart pointers in Rust. However, this library deviates from that policy.
 This library uses the `Deref` trait as a hack to implement the newtype pattern.
@@ -29,8 +29,9 @@ Types that derive `DerivingVia`, therefore, will behave as _Smart Wrappers_ of t
 
 ### Example
 
+When looking up a method call, the receiver may be automatically dereferenced or borrowed in order to call a method (see [Method-call expressions | The Rust Reference](https://doc.rust-lang.org/stable/reference/expressions/method-call-expr.html#method-call-expressions)).
 `DerivingVia` macro generates `Deref` trait implementation.
-Therefore, even if the method call is not directly syntactically valid, the receiver type can be repeatedly dereferenced.
+Therefore, newtypes that derive the `DerivingVia` can make method calls to their underlying type.
 
 ```rust
 use deriving_via::DerivingVia;
@@ -45,7 +46,7 @@ fn main() {
 }
 ```
 
-`Foo` doesn't implement `Clone` trait, therefore `foo.to_owned()` doesn't work directly.
+`Foo` doesn't implement `Clone` trait, therefore `foo.to_owned()` doesn't work for `Foo`.
 However, `Foo` implements `Deref` trait; therefore `foo` is dereferenced to `i32` and `to_owned()` is called for `i32`.
 
 ```rust
