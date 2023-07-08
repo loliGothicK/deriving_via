@@ -11,6 +11,8 @@ mod as_ref;
 #[cfg(test)]
 mod attribute;
 #[cfg(test)]
+mod clone;
+#[cfg(test)]
 mod const_generics;
 #[cfg(test)]
 mod default;

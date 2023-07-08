@@ -43,6 +43,7 @@ enum AvailableDerives {
     MulAssign,
     Default,
     IntoInner,
+    Clone,
 }
 
 mod keyword {
