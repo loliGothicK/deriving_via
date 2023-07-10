@@ -15,6 +15,8 @@ mod clone;
 #[cfg(test)]
 mod const_generics;
 #[cfg(test)]
+mod debug;
+#[cfg(test)]
 mod default;
 #[cfg(test)]
 mod deserialize;

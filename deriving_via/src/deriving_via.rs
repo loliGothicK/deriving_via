@@ -44,6 +44,7 @@ enum AvailableDerives {
     Default,
     IntoInner,
     Clone,
+    Debug,
 }
 
 mod keyword {
