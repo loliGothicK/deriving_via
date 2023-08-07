@@ -18,7 +18,7 @@ proc-macro-error = "1.0.4"
 proc-macro2 = "1.0.66"
 quote = "1.0.32"
 strum = "0.25.0"
-strum_macros = "0.25.1"
+strum_macros = "0.25.2"
 syn = { version = "2.0.28", features = ["full"] }
 typed-builder = "0.15.2"
 
