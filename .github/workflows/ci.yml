@@ -65,6 +65,7 @@ jobs:
       SCCACHE_DIR: ${{ matrix.sccache-path }}
       SCCACHE_VERSION: 0.3.3
       # SCCACHE_RECACHE: 1 # Uncomment this to clear cache, then comment it back out
+      RUSTC_WRAPPER: sccache
 
     steps:
       - uses: actions/checkout@v4
@@ -105,12 +106,8 @@ jobs:
       - name: Start sccache server
         run: sccache --start-server
 
-      - name: Build
-        uses: dtolnay/rust-toolchain@stable
-        env:
-          RUSTC_WRAPPER: sccache
-        with:
-          command: build
+      - name: Run tests
+        run: cargo build
 
       - name: Run clippy
         uses: LoliGothick/clippy-check@master
@@ -121,12 +118,7 @@ jobs:
           deny: warnings
 
       - name: Run tests
-        uses: dtolnay/rust-toolchain@stable
-        env:
-          RUSTC_WRAPPER: sccache
-        with:
-          command: test
-          args: --all-features
+        run: cargo test --all-features
 
       - name: Print sccache stats
         run: sccache --show-stats
