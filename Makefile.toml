@@ -11,9 +11,8 @@ command = "cargo"
 args = [ "clippy", "--fix", "--allow-dirty", "--allow-staged" ]
 
 [tasks.test]
-install_crate = { crate_name = "cargo-nextst" }
 command = "cargo"
-args = [ "nextest", "run" ]
+args = [ "test" ]
 
 [tasks.lint]
 command = "cargo"
