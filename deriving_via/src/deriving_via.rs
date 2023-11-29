@@ -206,11 +206,8 @@ impl DerivingAttributes {
             .into_iter()
             .map(|derive| {
                 AvailableDerives::iter()
-                    .filter_map(|kind| {
-                        derive.path.is_ident(kind.into()).then(|| {
-                            kind.invoke(input, derive.via.as_ref().cloned().map(Into::into))
-                        })
-                    })
+                    .filter(|&kind| derive.path.is_ident(kind.into()))
+                    .map(|kind| kind.invoke(input, derive.via.as_ref().cloned().map(Into::into)))
                     .collect::<Vec<_>>()
                     .first()
                     .cloned()
