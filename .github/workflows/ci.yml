@@ -63,7 +63,6 @@ jobs:
       RUSTV: ${{ matrix.rust }}
       SCCACHE_CACHE_SIZE: 2G
       SCCACHE_DIR: ${{ matrix.sccache-path }}
-      SCCACHE_VERSION: 0.3.3
       # SCCACHE_RECACHE: 1 # Uncomment this to clear cache, then comment it back out
       RUSTC_WRAPPER: sccache
 
@@ -93,15 +92,15 @@ jobs:
           path: |
             ${{ matrix.sccache.path }}
             ~/.cargo/bin/sccache${{ matrix.exe }}
-          key: ${{ runner.os }}-sccache-${{ env.SCCACHE_VERSION }}-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-sccache-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-sccache-${{ env.SCCACHE_VERSION }}-
+            ${{ runner.os }}-sccache
 
       - if: ${{ steps.restore-sccache.outputs.cache-hit == false }}
-        name: Install sccache
-        run: |
-            cargo install sccache --version ${{ env.SCCACHE_VERSION }} --force
-            sccache --version
+        name: install sccache
+        uses: taiki-e/install-action@v2
+        with:
+          tool: sccache
 
       - name: Start sccache server
         run: sccache --start-server
