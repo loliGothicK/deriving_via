@@ -14,6 +14,8 @@ pub struct C(B);
 
 #[test]
 fn test() {
+    let a = A(1);
+    let _: i32 = a.into_inner();
     let c = C(B(A(1)));
     let _: i32 = c.into_inner();
 }
