@@ -6,14 +6,14 @@ use super::super::utils::extract_fields;
 pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
-    let (accessor, _, _) = extract_fields(input);
+    let (accessor, _, constructor) = extract_fields(input);
 
     via.as_ref().map_or_else(
         || {
             quote! {
                 impl #impl_generics Clone for #struct_name #ty_generics #where_clause {
                     fn clone(&self) -> Self {
-                        self. #accessor .clone()
+                        #constructor(self. #accessor .to_owned())
                     }
                 }
             }
