@@ -45,6 +45,7 @@ enum AvailableDerives {
     IntoInner,
     Clone,
     Debug,
+    Copy,
 }
 
 mod keyword {

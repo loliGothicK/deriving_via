@@ -11,11 +11,14 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
     via.as_ref().map_or_else(
         || {
             quote! {
+                #[allow(clippy::non_canonical_clone_impl)]
                 impl #impl_generics Clone for #struct_name #ty_generics #where_clause {
                     fn clone(&self) -> Self {
                         #constructor(self. #accessor .to_owned())
                     }
                 }
+
+                impl #impl_generics Copy for #struct_name #ty_generics #where_clause {}
             }
         },
         |via| {
@@ -26,6 +29,8 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
                         __.to_owned().into()
                     }
                 }
+
+                impl #impl_generics Copy for #struct_name #ty_generics #where_clause {}
             }
         },
     )

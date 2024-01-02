@@ -4,6 +4,7 @@ pub(crate) mod arithmetic;
 pub(crate) mod as_mut;
 pub(crate) mod as_ref;
 pub(crate) mod clone;
+pub(crate) mod copy;
 pub(crate) mod debug;
 pub(crate) mod default;
 pub(crate) mod deref;
