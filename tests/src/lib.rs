@@ -15,6 +15,8 @@ mod clone;
 #[cfg(test)]
 mod const_generics;
 #[cfg(test)]
+mod copy;
+#[cfg(test)]
 mod debug;
 #[cfg(test)]
 mod default;
