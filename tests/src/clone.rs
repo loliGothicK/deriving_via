@@ -21,9 +21,12 @@ pub struct D<T: Clone>(T);
 #[deriving(From, Into, Clone)]
 pub struct E<T>(#[underlying] i32, std::marker::PhantomData<T>);
 
+impl<T> Copy for E<T> {}
+
 #[test]
 fn test() {
     let _: C = C(B(A(1))).clone();
     let _: D<i32> = D(1).clone();
-    let _: E<B> = E(1, std::marker::PhantomData).to_owned();
+    let e = E(1, std::marker::PhantomData);
+    let _: E<B> = e;
 }
