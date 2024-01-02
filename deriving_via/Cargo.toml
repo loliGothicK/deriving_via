@@ -1,6 +1,6 @@
 [package]
 name = "deriving_via"
-version = "1.5.1"
+version = "1.5.2"
 edition = "2021"
 authors = ["MitamaLab <mitama@mitama.tech>"]
 description = "DerivingVia"
