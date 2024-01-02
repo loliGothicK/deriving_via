@@ -27,7 +27,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: EmbarkStudios/cargo-deny-action@v1
         with:
-          rust-version: 1.74.0
+          rust-version: 1.75.0
           log-level: warn
           command: check
           arguments: --all-features
