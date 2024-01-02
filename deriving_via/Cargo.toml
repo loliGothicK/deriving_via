@@ -16,7 +16,7 @@ deriving-via-impl = "0.1.0"
 itertools = "0.12.0"
 proc-macro-error = "1.0.4"
 proc-macro2 = "1.0.73"
-quote = "1.0.34"
+quote = "1.0.35"
 strum = "0.25.0"
 strum_macros = "0.25.3"
 syn = { version = "2.0.45", features = ["full"] }
