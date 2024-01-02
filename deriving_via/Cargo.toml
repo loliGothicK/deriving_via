@@ -1,12 +1,11 @@
 [package]
 name = "deriving_via"
-version = "1.5.3"
+version = "1.6.0"
 edition = "2021"
 authors = ["MitamaLab <mitama@mitama.tech>"]
 description = "DerivingVia"
 repository = "https://github.com/LoliGothick/deriving_via"
 license = "MIT"
-
 
 [lib]
 proc-macro = true
