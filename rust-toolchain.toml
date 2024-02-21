@@ -1,4 +1,4 @@
 [toolchain]
-channel = "1.75.0"
-components = [ "cargo", "rustfmt", "clippy" ]
+channel = "1.76.0"
+components = ["cargo", "rustfmt", "clippy"]
 profile = "minimal"
