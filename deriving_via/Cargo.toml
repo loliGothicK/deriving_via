@@ -16,7 +16,7 @@ itertools = "0.12.1"
 proc-macro-error = "1.0.4"
 proc-macro2 = "1.0.78"
 quote = "1.0.35"
-strum = "0.26.1"
+strum = "0.26.2"
 strum_macros = "0.26.1"
 syn = { version = "2.0.52", features = ["full"] }
 typed-builder = "0.18.1"
