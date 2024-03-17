@@ -18,7 +18,7 @@ proc-macro2 = "1.0.79"
 quote = "1.0.35"
 strum = "0.26.2"
 strum_macros = "0.26.2"
-syn = { version = "2.0.52", features = ["full"] }
+syn = { version = "2.0.53", features = ["full"] }
 typed-builder = "0.18.1"
 
 [dev-dependencies.cargo-husky]
