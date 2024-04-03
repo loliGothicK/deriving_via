@@ -158,7 +158,7 @@ fn main() {
 
 ## `#[transitive]` attribute
 
-To implement `Dispaly`, it is sufficient to dereference `Self` to the underlying type.
+To implement `Display`, it is sufficient to dereference `Self` to the underlying type.
 So what about the `Add` trait?
 Consider, for example, the `i32` wrapper: dereferencing up to `i32` is sufficient to perform addition.
 However, when you want to derive `Add`, you can dereference up to `i32`, but not from `i32` back to `Self`.
