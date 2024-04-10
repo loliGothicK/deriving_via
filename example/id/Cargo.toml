@@ -5,7 +5,7 @@ edition = "2021"
 license = "MIT"
 
 [dependencies]
-anyhow = "1.0.81"
+anyhow = "1.0.82"
 deriving_via = { path = "../../deriving_via" }
 
 [dev-dependencies.cargo-husky]
