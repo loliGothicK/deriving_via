@@ -22,7 +22,7 @@ syn = { version = "2.0.60", features = ["full"] }
 typed-builder = "0.18.2"
 
 [dev-dependencies.cargo-husky]
-version = "1"
+version = "1.5.0"
 default-features = false # Disable features which are enabled by default
 features = ["user-hooks"]
 
