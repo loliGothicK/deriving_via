@@ -19,7 +19,7 @@ quote = "1.0.36"
 strum = "0.26.2"
 strum_macros = "0.26.2"
 syn = { version = "2.0.60", features = ["full"] }
-typed-builder = "0.19.0"
+typed-builder = "0.20.0"
 
 [dev-dependencies.cargo-husky]
 version = "1.5.0"
