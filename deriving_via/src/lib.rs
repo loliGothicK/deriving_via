@@ -47,7 +47,7 @@ mod deriving_via;
 extern crate proc_macro;
 #[allow(unused)]
 use proc_macro::TokenStream;
-use proc_macro_error::proc_macro_error;
+use proc_macro_error2::proc_macro_error;
 
 #[proc_macro_error]
 #[proc_macro_derive(DerivingVia, attributes(deriving, transitive, underlying))]

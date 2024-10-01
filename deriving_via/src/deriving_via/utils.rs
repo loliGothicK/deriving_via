@@ -1,6 +1,6 @@
 use itertools::Itertools;
 use proc_macro2::TokenStream;
-use proc_macro_error::abort;
+use proc_macro_error2::abort;
 use quote::quote;
 
 pub(crate) type Constructor = TokenStream;

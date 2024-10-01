@@ -13,7 +13,7 @@ proc-macro = true
 [dependencies]
 deriving-via-impl = "0.1.0"
 itertools = "0.13.0"
-proc-macro-error = "1.0.4"
+proc-macro-error2 = "2.0.1"
 proc-macro2 = "1.0.81"
 quote = "1.0.36"
 strum = "0.26.2"
