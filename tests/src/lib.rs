@@ -48,5 +48,6 @@ mod into_iterator;
 mod iter;
 #[cfg(test)]
 mod mul;
+mod ord;
 #[cfg(test)]
 mod serialize;

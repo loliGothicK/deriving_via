@@ -31,9 +31,8 @@ fn impl_ord(input: &syn::DeriveInput, via: Option<&syn::Type>) -> TokenStream {
             quote! {
                 impl #impl_generics Ord for #struct_name #ty_generics #where_clause{
                     fn cmp(&self, other: &Self) -> ::core::cmp::Ordering {
-                        type De = <#via as ::core::ops::Deref>::Target;
-                        let left: &De = self;
-                        let right: &De = other;
+                        let left: &#via = self;
+                        let right: &#via = other;
                         left.cmp(right)
                     }
                 }
