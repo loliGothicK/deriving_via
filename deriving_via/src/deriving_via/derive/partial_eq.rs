@@ -11,7 +11,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
     via.as_ref().map_or_else(
         || {
             quote! {
-                impl #impl_generics std::cmp::PartialEq for #struct_name #ty_generics #where_clause {
+                impl #impl_generics ::core::cmp::PartialEq for #struct_name #ty_generics #where_clause {
                     fn eq(&self, other: &Self) -> bool {
                         self.#accessor.eq(&other.#accessor)
                     }
@@ -20,7 +20,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
         },
         |via| {
             quote! {
-                impl #impl_generics std::cmp::PartialEq for #struct_name #ty_generics #where_clause {
+                impl #impl_generics ::core::cmp::PartialEq for #struct_name #ty_generics #where_clause {
                     fn eq(&self, other: &Self) -> bool {
                         let left: &#via = self;
                         let right: &#via = other;

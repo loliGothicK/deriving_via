@@ -12,7 +12,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
         || {
             quote! {
                 impl #impl_generics ::core::hash::Hash for #struct_name #ty_generics #where_clause {
-                    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+                    fn hash<H: ::core::hash::Hasher>(&self, state: &mut H) {
                         self.#accessor.hash(state);
                     }
                 }
@@ -21,7 +21,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
         |via| {
             quote! {
                 impl #impl_generics ::core::hash::Hash for #struct_name #ty_generics #where_clause {
-                    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+                    fn hash<H: ::core::hash::Hasher>(&self, state: &mut H) {
                         let de: &#via = self;
                         de.hash(state);
                     }

@@ -11,10 +11,10 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
     via.as_ref().map_or_else(
         || {
             quote! {
-                impl #impl_generics std::convert::TryFrom<#field_ty> for #struct_name #ty_generics #where_clause {
-                    type Error = <#field_ty as std::str::TryFrom>::Error;
+                impl #impl_generics ::core::convert::TryFrom<#field_ty> for #struct_name #ty_generics #where_clause {
+                    type Error = <#field_ty as ::core::str::TryFrom>::Error;
 
-                    fn try_from(__: #field_ty) -> std::result::Result<Self, Self::Error> {
+                    fn try_from(__: #field_ty) -> ::core::result::Result<Self, Self::Error> {
                         Ok(#constructor(__.try_into()?))
                     }
                 }
@@ -22,10 +22,10 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
         },
         |via| {
             quote! {
-                impl #impl_generics std::convert::TryFrom<#field_ty> for #struct_name #ty_generics #where_clause {
-                    type Error = <#via as std::str::TryFrom>::Error;
+                impl #impl_generics ::core::convert::TryFrom<#field_ty> for #struct_name #ty_generics #where_clause {
+                    type Error = <#via as ::core::str::TryFrom>::Error;
 
-                    fn try_from(__: #field_ty) -> std::result::Result<Self, Self::Error> {
+                    fn try_from(__: #field_ty) -> ::core::result::Result<Self, Self::Error> {
                         let intermediate: #via = __.try_into()?;
                         Ok(intermediate.into())
                     }

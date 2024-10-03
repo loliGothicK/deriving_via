@@ -48,13 +48,13 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
                 || {
                     quote! {
                         where
-                            Self: std::convert::From<<#via as ::core::ops::Sub>::Output>,
+                            Self: ::core::convert::From<<#via as ::core::ops::Sub>::Output>,
                     }
                 },
                 |where_clause| {
                     quote! {
                         #where_clause
-                            Self: std::convert::From<<#via as ::core::ops::Sub>::Output>,
+                            Self: ::core::convert::From<<#via as ::core::ops::Sub>::Output>,
                     }
                 },
             );
