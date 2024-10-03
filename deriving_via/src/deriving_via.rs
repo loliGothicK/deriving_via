@@ -197,7 +197,7 @@ pub(crate) fn impl_deriving_via(input: &syn::DeriveInput) -> TokenStream {
                 None
             }
         })
-        .chain([deref::extract(input), deref_mut::extract(input, None)])
+        .chain([deref::extract(input), deref_mut::extract(input)])
         .collect()
 }
 
