@@ -9,7 +9,7 @@ use syn::{
     punctuated::Punctuated,
 };
 
-use crate::deriving_via::derive::*;
+use crate::{customized, deriving_via::derive::*};
 
 mod derive;
 pub(crate) mod utils;
@@ -51,6 +51,8 @@ enum AvailableDerives {
 mod keyword {
     syn::custom_keyword!(deriving);
     syn::custom_keyword!(transitive);
+    syn::custom_keyword!(display);
+    syn::custom_keyword!(debug);
 }
 
 struct Deriving {
@@ -156,6 +158,30 @@ impl Parse for Transitive {
     }
 }
 
+enum Customized {
+    Display(syn::LitStr),
+    Debug(syn::LitStr),
+}
+
+impl Parse for Customized {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let content;
+
+        if input.parse::<keyword::display>().is_ok() {
+            let _ = syn::parenthesized!(content in input);
+            Ok(Customized::Display(content.parse()?))
+        } else if input.parse::<keyword::debug>().is_ok() {
+            let _ = syn::parenthesized!(content in input);
+            Ok(Customized::Debug(content.parse()?))
+        } else {
+            Err(syn::Error::new_spanned(
+                input.parse::<syn::LitStr>()?,
+                "Error: unknown attribute",
+            ))
+        }
+    }
+}
+
 impl DerivingAttributes {
     fn from_attribute(attr: &syn::Attribute) -> syn::Result<Self> {
         parse2(attr.meta.to_token_stream())
@@ -163,6 +189,12 @@ impl DerivingAttributes {
 }
 
 impl Transitive {
+    fn from_attribute(attr: &syn::Attribute) -> syn::Result<Self> {
+        parse2(attr.meta.to_token_stream())
+    }
+}
+
+impl Customized {
     fn from_attribute(attr: &syn::Attribute) -> syn::Result<Self> {
         parse2(attr.meta.to_token_stream())
     }
@@ -191,6 +223,14 @@ pub(crate) fn impl_deriving_via(input: &syn::DeriveInput) -> TokenStream {
             {
                 Some(match Transitive::from_attribute(attr) {
                     Ok(transitive) => transitive.into_token_stream(input),
+                    Err(err) => err.to_compile_error(),
+                })
+            } else if ["display", "debug"]
+                .iter()
+                .any(|keyword| attr.meta.to_token_stream().to_string().starts_with(keyword))
+            {
+                Some(match Customized::from_attribute(attr) {
+                    Ok(customized) => customized.into_token_stream(input),
                     Err(err) => err.to_compile_error(),
                 })
             } else {
@@ -246,6 +286,15 @@ impl Transitive {
                     __
                 }
             }
+        }
+    }
+}
+
+impl Customized {
+    fn into_token_stream(self, input: &syn::DeriveInput) -> TokenStream {
+        match self {
+            Customized::Display(fmt) => customized::display::extract(fmt, input),
+            Customized::Debug(fmt) => customized::debug::extract(fmt, input),
         }
     }
 }

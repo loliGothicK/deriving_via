@@ -42,6 +42,7 @@
 //! ```
 //!
 
+mod customized;
 mod deriving_via;
 
 extern crate proc_macro;
@@ -50,7 +51,10 @@ use proc_macro::TokenStream;
 use proc_macro_error2::proc_macro_error;
 
 #[proc_macro_error]
-#[proc_macro_derive(DerivingVia, attributes(deriving, transitive, underlying))]
+#[proc_macro_derive(
+    DerivingVia,
+    attributes(deriving, transitive, underlying, display, debug)
+)]
 pub fn deriving_via(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
     deriving_via::impl_deriving_via(&ast).into()

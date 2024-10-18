@@ -16,6 +16,7 @@ mod clone;
 mod const_generics;
 #[cfg(test)]
 mod copy;
+mod customized;
 #[cfg(test)]
 mod debug;
 #[cfg(test)]
