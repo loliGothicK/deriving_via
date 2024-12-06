@@ -40,7 +40,6 @@
 //!
 //! println!("{x}");
 //! ```
-//!
 
 mod deriving_via;
 
