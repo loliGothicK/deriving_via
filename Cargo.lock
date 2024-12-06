@@ -52,7 +52,7 @@ dependencies = [
 name = "deriving_via"
 version = "2.0.0"
 dependencies = [
- "deriving_via_macros",
+ "deriving_via_macros 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -60,6 +60,22 @@ name = "deriving_via_macros"
 version = "2.0.0"
 dependencies = [
  "cargo-husky",
+ "deriving-via-impl 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "itertools",
+ "proc-macro-error2",
+ "proc-macro2",
+ "quote",
+ "strum",
+ "strum_macros",
+ "syn",
+]
+
+[[package]]
+name = "deriving_via_macros"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8b656380dad9178d5cbe96e44d6a19f48210b48e7e0835b46176215e23e8dc5e"
+dependencies = [
  "deriving-via-impl 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "itertools",
  "proc-macro-error2",
