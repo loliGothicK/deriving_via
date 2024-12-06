@@ -4,21 +4,35 @@ on: [ push, pull_request ]
 
 jobs:
   rustfmt:
-    name: rustfmt check
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      checks: write
     steps:
       - uses: actions/checkout@v4
-      - run: echo "date=$(date -d '1 month ago' +'%Y-%m-%d')" >> $GITHUB_ENV
-      - uses: dtolnay/rust-toolchain@master
+      - uses: dtolnay/rust-toolchain@nightly
         with:
-          toolchain: nightly-${{ env.date }}
           components: rustfmt
       - uses: LoliGothick/rustfmt-check@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          toolchain: nightly-${{ env.date }}
           flags: --all
           args: --config-path=./.cargo-husky/hooks/rustfmt.toml
+
+  clippy:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: clippy
+      - uses: giraffate/clippy-action@v1
+        with:
+          reporter: 'github-pr-review'
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          clippy_flags: -- -Dwarning
 
   deny:
     name: Run cargo-deny
@@ -27,13 +41,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: EmbarkStudios/cargo-deny-action@v2
         with:
-          rust-version: 1.78.0
+          rust-version: stable
           log-level: warn
           command: check
           arguments: --all-features
 
   test:
-    needs: [ rustfmt ]
+    needs: [ rustfmt, clippy, deny ]
     name: "Test: { target: ${{ matrix.os }}, channel: ${{ matrix.rust }} }"
     runs-on: ${{matrix.os}}
     strategy:
@@ -105,18 +119,7 @@ jobs:
       - name: Start sccache server
         run: sccache --start-server
 
-      - name: Run tests
-        run: cargo build
-
-      - name: Run clippy
-        uses: LoliGothick/clippy-check@master
-        env:
-          RUSTC_WRAPPER: sccache
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          deny: warnings
-
-      - name: Run tests
+      - name: Run test_suite
         run: cargo test --all-features
 
       - name: Print sccache stats

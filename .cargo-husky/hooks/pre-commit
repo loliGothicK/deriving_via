@@ -1,4 +1,13 @@
 #!/bin/sh
+pushd . >/dev/null
 
-cargo fmt -- --check &&
-  cargo clippy -- -D warnings
+echo 'running: cargo +nightly fmt -- --check'
+rustup run nightly cargo fmt -- --check --config-path="$(git rev-parse --show-superproject-working-tree --show-toplevel)/.cargo-husky/hooks/rustfmt.toml" || exit 1
+
+echo 'running: cargo clippy -- -D warnings'
+cargo clippy -- -D warnings || exit 2
+
+echo 'running: cargo test'
+cargo test
+
+popd >/dev/null

@@ -1,31 +1,11 @@
 [package]
 name = "deriving_via"
-version = "1.6.3"
-edition = "2021"
-authors = ["MitamaLab <mitama@mitama.tech>"]
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+repository.workspace = true
+license.workspace = true
 description = "DerivingVia"
-repository = "https://github.com/LoliGothick/deriving_via"
-license = "MIT"
-
-[lib]
-proc-macro = true
 
 [dependencies]
-deriving-via-impl = "0.1.0"
-itertools = "0.13.0"
-proc-macro-error2 = "2.0.1"
-proc-macro2 = "1.0.81"
-quote = "1.0.36"
-strum = "0.26.2"
-strum_macros = "0.26.2"
-syn = { version = "2.0.60", features = ["full"] }
-typed-builder = "0.20.0"
-
-[dev-dependencies.cargo-husky]
-version = "1.5.0"
-default-features = false # Disable features which are enabled by default
-features = ["user-hooks"]
-
-[package.metadata.cargo-udeps.ignore]
-normal = ["typed-builder"]
-development = ["cargo-husky"]
+deriving_via_macros = "2.0.0"

@@ -3,19 +3,14 @@
 version = 4
 
 [[package]]
-name = "anyhow"
-version = "1.0.94"
+name = "automod"
+version = "1.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c1fd03a028ef38ba2276dce7e33fcd6369c158a1bca17946c4b1b701891c1ff7"
-
-[[package]]
-name = "basics"
-version = "0.1.0"
+checksum = "edf3ee19dbc0a46d740f6f0926bde8c50f02bdbc7b536842da28f6ac56513a8b"
 dependencies = [
- "cargo-husky",
- "deriving_via",
- "serde",
- "serde_json",
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -35,32 +30,37 @@ dependencies = [
 
 [[package]]
 name = "deriving-via-impl"
-version = "0.1.0"
+version = "2.0.0"
 dependencies = [
  "convert_case",
- "proc-macro2",
  "quote",
  "syn",
 ]
 
 [[package]]
 name = "deriving-via-impl"
-version = "0.1.0"
+version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0ed8bf3147663d533313857a62e60f1b23f680992b79defe99211fc65afadcb4"
+checksum = "a6d61ad5d1494e4f30e19204ecd3a2a123a4d460be39eca0f321dbe434ad088f"
 dependencies = [
  "convert_case",
- "proc-macro2",
  "quote",
  "syn",
 ]
 
 [[package]]
 name = "deriving_via"
-version = "1.6.3"
+version = "2.0.0"
+dependencies = [
+ "deriving_via_macros",
+]
+
+[[package]]
+name = "deriving_via_macros"
+version = "2.0.0"
 dependencies = [
  "cargo-husky",
- "deriving-via-impl 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "deriving-via-impl 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "itertools",
  "proc-macro-error2",
  "proc-macro2",
@@ -68,36 +68,19 @@ dependencies = [
  "strum",
  "strum_macros",
  "syn",
- "typed-builder",
 ]
 
 [[package]]
 name = "either"
-version = "1.10.0"
+version = "1.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "11157ac094ffbdde99aa67b23417ebdd801842852b500e395a45a9c0aac03e4a"
-
-[[package]]
-name = "gnd"
-version = "0.1.0"
-dependencies = [
- "deriving_via",
-]
+checksum = "60b1af1c220855b6ceac025d3f6ecdd2b7c4894bfe9cd9bda4fbb4bc7c0d4cf0"
 
 [[package]]
 name = "heck"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
-
-[[package]]
-name = "id"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "cargo-husky",
- "deriving_via",
-]
 
 [[package]]
 name = "itertools"
@@ -110,9 +93,9 @@ dependencies = [
 
 [[package]]
 name = "itoa"
-version = "1.0.10"
+version = "1.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1a46d1a171d865aa5f83f92695765caa047a9b4cbae2cbf37dbd613a793fd4c"
+checksum = "d75a2a4b1b190afb6f5425f10f6a8f959d2ea0b9c2b1d79553551850539e4674"
 
 [[package]]
 name = "memchr"
@@ -162,15 +145,15 @@ dependencies = [
 
 [[package]]
 name = "rustversion"
-version = "1.0.14"
+version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7ffc183a10b4478d04cbbbfc96d0873219d962dd5accaff2ffbd4ceb7df837f4"
+checksum = "0e819f2bc632f285be6d7cd36e25940d45b2391dd6d9b939e79de557f7014248"
 
 [[package]]
 name = "ryu"
-version = "1.0.17"
+version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e86697c916019a8588c99b5fac3cead74ec0b4b819707a682fd4d23fa0ce1ba1"
+checksum = "f3cb5ba0dc43242ce17de99c180e96db90b235b8a9fdc9543c96d2209116bd9f"
 
 [[package]]
 name = "serde"
@@ -205,16 +188,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "serialize"
-version = "0.1.0"
-dependencies = [
- "cargo-husky",
- "deriving_via",
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "strum"
 version = "0.26.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -245,42 +218,23 @@ dependencies = [
 ]
 
 [[package]]
-name = "tests"
+name = "test_suite"
 version = "0.1.0"
 dependencies = [
+ "automod",
  "deriving_via",
  "serde",
  "serde_json",
 ]
 
 [[package]]
-name = "typed-builder"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e14ed59dc8b7b26cacb2a92bad2e8b1f098806063898ab42a3bd121d7d45e75"
-dependencies = [
- "typed-builder-macro",
-]
-
-[[package]]
-name = "typed-builder-macro"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "560b82d656506509d43abe30e0ba64c56b1953ab3d4fe7ba5902747a7a3cedd5"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "unicode-ident"
-version = "1.0.12"
+version = "1.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3354b9ac3fae1ff6755cb6db53683adb661634f67557942dea4facebec0fee4b"
+checksum = "adb9e6ca4f869e1180728b7950e35922a7fc6397f7b641499e8f3ef06e50dc83"
 
 [[package]]
 name = "unicode-segmentation"
-version = "1.11.0"
+version = "1.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d4c87d22b6e3f4a18d4d40ef354e97c90fcb14dd91d7dc0aa9d8a1172ebf7202"
+checksum = "f6ccf251212114b54433ec949fd6a7841275f9ada20dddd2f29e9ceea4501493"
