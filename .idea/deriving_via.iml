@@ -12,6 +12,8 @@
       <sourceFolder url="file://$MODULE_DIR$/example/validated/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/deriving_via_impl/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/example/gnd/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/deriving_via_macros/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/test_suite/tests" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/deriving_via/target" />
     </content>

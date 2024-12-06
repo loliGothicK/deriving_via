@@ -1,17 +1,16 @@
 [package]
 name = "deriving-via-impl"
-version = "0.1.0"
-edition = "2021"
-authors = ["MitamaLab <mitama@mitama.tech>"]
-description = "DerivingVia"
-repository = "https://github.com/LoliGothick/deriving_via"
-license = "MIT"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "DerivingViaImpl"
 
 [lib]
 proc-macro = true
 
 [dependencies]
 convert_case = "0.6.0"
-proc-macro2 = "1.0.81"
 quote = "1.0.36"
 syn = { version = "2.0.60", features = ["full"] }
