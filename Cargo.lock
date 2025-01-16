@@ -29,10 +29,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "convert_case"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bb402b8d4c85569410425650ce3eddc7d698ed96d39a73f941b08fb63082f1e7"
+dependencies = [
+ "unicode-segmentation",
+]
+
+[[package]]
 name = "deriving-via-impl"
 version = "2.0.0"
 dependencies = [
- "convert_case",
+ "convert_case 0.7.1",
  "quote",
  "syn",
 ]
@@ -43,7 +52,7 @@ version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a6d61ad5d1494e4f30e19204ecd3a2a123a4d460be39eca0f321dbe434ad088f"
 dependencies = [
- "convert_case",
+ "convert_case 0.6.0",
  "quote",
  "syn",
 ]
