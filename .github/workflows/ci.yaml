@@ -49,12 +49,11 @@ jobs:
   test:
     needs: [ rustfmt, clippy, deny ]
     name: "Test: { target: ${{ matrix.os }}, channel: ${{ matrix.rust }} }"
-    runs-on: ${{matrix.os}}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
-        rust: [ stable ]
         include:
           - os: ubuntu-latest
             target: unknown-linux-musl
@@ -65,13 +64,18 @@ jobs:
 
     env:
       RUST_BACKTRACE: full
-      RUSTV: ${{ matrix.rust }}
 
     steps:
       - uses: actions/checkout@v4
+      - name: Environment
+        run: |
+          "RUST_VERSION=$(grep -oP '(?<=channel = \").*(?=\")' rust-toolchain.toml)" >> $GITHUB_ENV
 
-      - name: Setup Rust ${{ matrix.rust }}
-        uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          target: ${{ matrix.target }}
+          components: clippy, rustfmt
 
       - name: Cache cargo registry
         uses: actions/cache@v4
@@ -83,9 +87,10 @@ jobs:
             ~/.cargo/git/db/
             ~/.cache/sccache/
             target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-rust-${{ env.RUST_VERSION }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-cargo-
+            ${{ runner.os }}-rust-${{ env.RUST_VERSION }}-cargo-
+            ${{ runner.os }}-rust-${{ env.RUST_VERSION }}
 
       - uses: mozilla-actions/sccache-action@v0.0.7
         with:
