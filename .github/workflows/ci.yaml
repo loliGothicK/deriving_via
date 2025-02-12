@@ -58,27 +58,14 @@ jobs:
         include:
           - os: ubuntu-latest
             target: unknown-linux-musl
-            sccache:
-              path: /home/runner/.cache/sccache
-            exe: ""
           - os: macos-latest
             target: apple-darwin
-            sccache:
-              path: /Users/runner/Library/Caches/Mozilla.sccache
-            exe: ""
           - os: windows-latest
             target: pc-windows-msvc
-            sccache:
-              path: /Users/runner/%LOCALAPPDATA%\Mozilla\sccache
-            exe: ".exe"
 
     env:
       RUST_BACKTRACE: full
       RUSTV: ${{ matrix.rust }}
-      SCCACHE_CACHE_SIZE: 2G
-      SCCACHE_DIR: ${{ matrix.sccache-path }}
-      # SCCACHE_RECACHE: 1 # Uncomment this to clear cache, then comment it back out
-      RUSTC_WRAPPER: sccache
 
     steps:
       - uses: actions/checkout@v4
@@ -91,38 +78,27 @@ jobs:
         continue-on-error: false
         with:
           path: |
-            ~/.cargo/registry
-            ~/.cargo/git            
             ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            ~/.cache/sccache/
+            target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
 
-      - name: Save sccache
-        id: restore-sccache
-        uses: actions/cache@v4
-        continue-on-error: false
+      - uses: mozilla-actions/sccache-action@v0.0.7
         with:
-          path: |
-            ${{ matrix.sccache.path }}
-            ~/.cargo/bin/sccache${{ matrix.exe }}
-          key: ${{ runner.os }}-sccache-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-sccache
-
-      - if: ${{ steps.restore-sccache.outputs.cache-hit == false }}
-        name: install sccache
-        uses: taiki-e/install-action@v2
+          version: "v0.9.1"
+      - run: |
+          echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
+          echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
+      - name: Configure Cache Env
+        uses: actions/github-script@v6
         with:
-          tool: sccache
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
-      - name: Start sccache server
-        run: sccache --start-server
-
-      - name: Run test_suite
+      - name: Run test suite
         run: cargo test --all-features
-
-      - name: Print sccache stats
-        run: sccache --show-stats
-      - name: Stop sccache server
-        run: sccache --stop-server || true
