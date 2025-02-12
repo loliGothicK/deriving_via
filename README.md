@@ -2,7 +2,7 @@
 
 ---
 
-[![Matrix Test](https://github.com/LoliGothick/deriving_via/actions/workflows/ci.yml/badge.svg)](https://github.com/LoliGothick/deriving_via/actions/workflows/ci.yaml)
+[![Matrix Test](https://github.com/LoliGothick/deriving_via/actions/workflows/ci.yaml/badge.svg)](https://github.com/LoliGothick/deriving_via/actions/workflows/ci.yaml)
 [![crate-name at crates.io](https://img.shields.io/crates/v/deriving_via.svg)](https://crates.io/crates/deriving_via)
 [![crate-name at docs.rs](https://docs.rs/deriving_via/badge.svg)](https://docs.rs/deriving_via)
 
