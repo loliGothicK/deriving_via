@@ -48,7 +48,7 @@ jobs:
 
   test:
     needs: [ rustfmt, clippy, deny ]
-    name: "Test: { target: ${{ matrix.os }}, channel: ${{ matrix.rust }} }"
+    name: "Test on ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -67,7 +67,7 @@ jobs:
       - if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
         run: echo "RUST_VERSION=$(sed -n 's/channel = "\(.*\)\"/\1/p' rust-toolchain.toml)" >> $GITHUB_ENV
       - if: matrix.os == 'windows-latest'
-        run: echo "RUST_VERSION=$((Select-String -Path rust-toolchain.toml -Pattern '(?<=channel = ").*(?=")').Matches.Value)" >> $GITHUB_ENV
+        run: echo "RUST_VERSION=$((Select-String -Path rust-toolchain.toml -Pattern '(?<=channel = ").*(?=")').Matches.Value)" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - uses: dtolnay/rust-toolchain@stable
         with:
