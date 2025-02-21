@@ -1,6 +1,6 @@
-use proc_macro2::TokenStream;
 use proc_macro_error2::abort;
-use quote::{quote, ToTokens};
+use proc_macro2::TokenStream;
+use quote::{ToTokens, quote};
 use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, IntoStaticStr};
 use syn::{

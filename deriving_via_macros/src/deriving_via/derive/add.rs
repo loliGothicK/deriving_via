@@ -1,6 +1,6 @@
 use itertools::Itertools;
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::{ToTokens, quote};
 use syn::GenericParam;
 
 use super::super::utils::extract_fields;

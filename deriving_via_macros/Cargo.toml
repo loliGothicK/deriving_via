@@ -11,7 +11,7 @@ description = "DerivingViaMacros"
 proc-macro = true
 
 [dependencies]
-deriving-via-impl = "2.0.0"
+deriving-via-impl = "2.1.0"
 itertools = "0.14.0"
 proc-macro-error2 = "2.0.1"
 proc-macro2 = "1.0.81"

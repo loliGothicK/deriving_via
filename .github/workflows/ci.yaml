@@ -59,27 +59,13 @@ jobs:
           toolchain: ${{ env.RUST_VERSION }}
           components: clippy, rustfmt
 
-      - name: Cache cargo registry
-        uses: actions/cache@v4
-        continue-on-error: false
-        with:
-          path: |
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            ~/.cache/sccache/
-            target/
-          key: ${{ runner.os }}-rust-${{ env.RUST_VERSION }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-rust-${{ env.RUST_VERSION }}-cargo-
-            ${{ runner.os }}-rust-${{ env.RUST_VERSION }}
-
       - uses: mozilla-actions/sccache-action@v0.0.7
+        env:
+          SCCACHE_GHA_ENABLED: "true"
+          RUSTC_WRAPPER: "sccache"
         with:
           version: "v0.9.1"
-      - run: |
-          echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
-          echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
+
       - name: Configure Cache Env
         uses: actions/github-script@v7
         with:

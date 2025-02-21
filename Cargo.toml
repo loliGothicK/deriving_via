@@ -8,8 +8,8 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "2.0.0"
-edition = "2021"
+version = "2.1.0"
+edition = "2024"
 authors = ["Mitama <loligothick@gmail.com>"]
 repository = "https://github.com/LoliGothick/deriving_via"
 license = "MIT"
