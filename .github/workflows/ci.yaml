@@ -13,7 +13,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
         with:
           components: rustfmt
-      - uses: LoliGothick/rustfmt-check@master
+      - uses: LoliGothick/rustfmt-check@nightly
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           flags: --all

@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/bash
+
 pushd . >/dev/null
 
 echo 'running: cargo +nightly fmt -- --check'
@@ -8,6 +9,6 @@ echo 'running: cargo clippy -- -D warnings'
 cargo clippy -- -D warnings || exit 2
 
 echo 'running: cargo test'
-cargo test
+cargo test || exit 3
 
-popd >/dev/null
+popd >/dev/null || exit 4
