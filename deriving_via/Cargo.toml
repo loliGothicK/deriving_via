@@ -8,4 +8,4 @@ license.workspace = true
 description = "DerivingVia"
 
 [dependencies]
-deriving_via_macros = "2.1.0"
+deriving_via_macros = "2.2.0"

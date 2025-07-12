@@ -11,14 +11,14 @@ description = "DerivingViaMacros"
 proc-macro = true
 
 [dependencies]
-deriving-via-impl = "2.1.0"
+deriving-via-impl = "2.2.0"
 itertools = "0.14.0"
 proc-macro-error2 = "2.0.1"
-proc-macro2 = "1.0.81"
-quote = "1.0.36"
-strum = "0.27.0"
-strum_macros = "0.27.0"
-syn = { version = "2.0.60", features = ["full"] }
+proc-macro2 = "1.0.95"
+quote = { workspace = true }
+strum = "0.27.1"
+strum_macros = "0.27.1"
+syn = { workspace = true }
 
 [dev-dependencies.cargo-husky]
 version = "1.5.0"
