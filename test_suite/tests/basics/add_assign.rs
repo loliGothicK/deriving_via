@@ -14,6 +14,7 @@ pub struct B(A);
 #[deriving(From, AddAssign(via: i32))]
 pub struct C(B);
 
+#[allow(dead_code)]
 #[derive(DerivingVia)]
 #[deriving(From, AddAssign(via: T))]
 pub struct D<T: AddAssign + SubAssign + Clone>(T);
