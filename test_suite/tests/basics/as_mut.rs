@@ -4,6 +4,7 @@ use deriving_via::DerivingVia;
 #[deriving(From, AsMut, Eq)]
 pub struct C(Vec<i32>);
 
+#[allow(dead_code)]
 #[derive(DerivingVia)]
 #[deriving(From, AsMut(via: Vec<T>))]
 pub struct D<T>(Vec<T>);

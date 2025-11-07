@@ -9,3 +9,8 @@ description = "DerivingVia"
 
 [dependencies]
 deriving_via_macros = "2.2.0"
+
+[features]
+default = ["std"]
+std = []
+alloc = []
