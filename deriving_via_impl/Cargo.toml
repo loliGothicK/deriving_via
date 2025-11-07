@@ -11,6 +11,6 @@ description = "DerivingViaImpl"
 proc-macro = true
 
 [dependencies]
-convert_case = "0.8.0"
+convert_case = "0.9.0"
 quote = { workspace = true }
 syn = { workspace = true }
