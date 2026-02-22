@@ -16,8 +16,8 @@ itertools = "0.14.0"
 proc-macro-error2 = "2.0.1"
 proc-macro2 = "1.0.95"
 quote = { workspace = true }
-strum = "0.27.1"
-strum_macros = "0.27.1"
+strum = "0.28.0"
+strum_macros = "0.28.0"
 syn = { workspace = true }
 
 [dev-dependencies.cargo-husky]
