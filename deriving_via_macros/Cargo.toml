@@ -27,3 +27,8 @@ features = ["user-hooks"]
 
 [package.metadata.cargo-udeps.ignore]
 development = ["cargo-husky"]
+
+[features]
+default = ["std"]
+std = []
+alloc = []
