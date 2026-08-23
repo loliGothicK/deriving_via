@@ -14,8 +14,8 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
     via.as_ref().map_or_else(
         || {
             quote! {
-                impl #impl_generics serde::Serialize for #struct_name #ty_generics #where_clause {
-                    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+                impl #impl_generics ::serde::Serialize for #struct_name #ty_generics #where_clause {
+                    fn serialize<S: ::serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
                         self.#accessor.serialize(serializer)
                     }
                 }
@@ -23,8 +23,8 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
         },
         |via| {
             quote! {
-                impl #impl_generics serde::Serialize for #struct_name #ty_generics #where_clause {
-                    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+                impl #impl_generics ::serde::Serialize for #struct_name #ty_generics #where_clause {
+                    fn serialize<S: ::serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
                         let de: &#via = self;
                         de.serialize(serializer)
                     }

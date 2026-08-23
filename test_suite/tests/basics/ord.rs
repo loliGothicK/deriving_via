@@ -4,6 +4,7 @@ use deriving_via::DerivingVia;
 #[deriving(Ord(via: i32), Eq(via: i32))]
 pub struct A(i32);
 
+#[allow(unused)]
 #[derive(Debug, DerivingVia)]
 #[deriving(
     Eq(via: u32),
