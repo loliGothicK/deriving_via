@@ -4,6 +4,10 @@ use quote::quote;
 use super::super::utils::extract_fields;
 
 pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> TokenStream {
+    if let Err(e) = extract_fields(input) {
+        return e;
+    }
+
     [
         impl_ord(input, via.as_ref()),
         super::partial_ord::extract(input, via),
