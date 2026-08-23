@@ -7,6 +7,9 @@ license.workspace = true
 repository.workspace = true
 description = "DerivingViaMacros"
 
+[package.metadata.release]
+disable-tag = true
+
 [lib]
 proc-macro = true
 
