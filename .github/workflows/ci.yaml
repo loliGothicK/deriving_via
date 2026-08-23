@@ -2,10 +2,14 @@ name: Catch and Flow
 
 on: [ push, pull_request ]
 
+permissions:
+  contents: read
+
 jobs:
   rustfmt:
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       pull-requests: write
       checks: write
     steps:
@@ -35,6 +39,10 @@ jobs:
     needs: [ rustfmt, deny ]
     name: "Test on ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
     strategy:
       fail-fast: false
       matrix:
