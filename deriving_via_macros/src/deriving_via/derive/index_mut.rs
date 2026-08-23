@@ -9,7 +9,10 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
     let impl_generics = &input.generics.params;
     let impl_generics = quote! { <__IdxT, #impl_generics> };
     let predicates = where_clause.map(|wc| &wc.predicates);
-    let (accessor, field_ty, _) = extract_fields(input);
+    let (accessor, field_ty, _) = match extract_fields(input) {
+        Ok(res) => res,
+        Err(e) => return e,
+    };
 
     via.as_ref().map_or_else(
         || {

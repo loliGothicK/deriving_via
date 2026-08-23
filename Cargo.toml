@@ -5,15 +5,19 @@ members = [
     "deriving_via_macros",
     "test_suite",
 ]
+
 resolver = "2"
 
+[workspace.metadata.release]
+tag = false
+
 [workspace.package]
-version = "2.2.0"
+version = "2.2.1"
 edition = "2024"
 authors = ["Mitama <loligothick@gmail.com>"]
 repository = "https://github.com/LoliGothick/deriving_via"
 license = "MIT"
 
 [workspace.dependencies]
-syn = { version = "2.0.104", features = ["full"] }
-quote = "1.0.40"
+syn = { version = "3.0.3", features = ["full"] }
+quote = "1.0.47"

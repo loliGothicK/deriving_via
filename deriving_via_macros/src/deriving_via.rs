@@ -1,4 +1,3 @@
-use proc_macro_error2::abort;
 use proc_macro2::TokenStream;
 use quote::{ToTokens, quote};
 use strum::IntoEnumIterator;
@@ -104,11 +103,10 @@ impl Parse for Via {
         use syn::FnArg::*;
 
         match &via.via {
-            Receiver(_) => abort!(
-                via.via,
-                "Unexpected token";
-                help = "expected: `via`, got: `self`";
-            ),
+            Receiver(_) => Err(syn::Error::new_spanned(
+                &via.via,
+                "Unexpected token: expected `via`, got `self`",
+            )),
             Typed(typed) => typed
                 .pat
                 .to_token_stream()

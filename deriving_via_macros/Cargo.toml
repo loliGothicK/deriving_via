@@ -11,11 +11,10 @@ description = "DerivingViaMacros"
 proc-macro = true
 
 [dependencies]
-deriving-via-impl = "2.2.0"
-itertools = "0.14.0"
-proc-macro-error2 = "2.0.1"
-proc-macro2 = "1.0.95"
+deriving-via-impl = { version = "2.2.0", path = "../deriving_via_impl" }
+itertools = "0.15.0"
 quote = { workspace = true }
+proc-macro2 = "1.0.107"
 strum = "0.28.0"
 strum_macros = "0.28.0"
 syn = { workspace = true }

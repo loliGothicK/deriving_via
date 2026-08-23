@@ -1,4 +1,3 @@
-use proc_macro_error2::abort;
 use proc_macro2::TokenStream;
 use quote::quote;
 
@@ -9,7 +8,10 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
     let generics_introducer = &input.generics.params;
     let generics_introducer = quote! { <'__derivingViaLifetime, #generics_introducer> };
-    let (accessor, filed_ty, _constructor) = extract_fields(input);
+    let (accessor, filed_ty, _constructor) = match extract_fields(input) {
+        Ok(res) => res,
+        Err(e) => return e,
+    };
 
     via.as_ref().map_or_else(
         || {
@@ -51,11 +53,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
             }
         },
         |_| {
-            abort!(
-                input,
-                "#[deriving(IntoIterator(via))] is not allowed";
-                help = "Please try #[deriving(Iter(via: <ItemType>)])";
-            );
+            syn::Error::new_spanned(input, "#[deriving(IntoIterator(via))] is not allowed: Please try #[deriving(Iter(via: <ItemType>))]").to_compile_error()
         },
     )
 }
