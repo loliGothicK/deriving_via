@@ -1,11 +1,10 @@
 [package]
 name = "examples"
-version.workspace = true
-edition.workspace = true
-authors.workspace = true
-license.workspace = true
-repository.workspace = true
-description = "DerivingViaMacros examples"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+description = "DerivingVia examples"
 
 [dependencies]
 deriving_via = { version = "2.2.1", path = "../deriving_via" }
