@@ -20,7 +20,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
                     type Err = ::core::convert::Infallible;
 
                     fn from_str(__: &str) -> ::core::result::Result<Self, Self::Err> {
-                        Ok(#constructor(__.to_owned()))
+                        Ok(#constructor(<String as ::core::convert::From<&str>>::from(__)))
                     }
                 }
             }

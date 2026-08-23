@@ -15,10 +15,10 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
         || {
             quote! {
                 impl #impl_generics ::core::convert::TryFrom<#field_ty> for #struct_name #ty_generics #where_clause {
-                    type Error = <#field_ty as ::core::str::TryFrom>::Error;
+                    type Error = ::core::convert::Infallible;
 
                     fn try_from(__: #field_ty) -> ::core::result::Result<Self, Self::Error> {
-                        Ok(#constructor(__.try_into()?))
+                        Ok(#constructor(__))
                     }
                 }
             }
@@ -26,7 +26,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
         |via| {
             quote! {
                 impl #impl_generics ::core::convert::TryFrom<#field_ty> for #struct_name #ty_generics #where_clause {
-                    type Error = <#via as ::core::str::TryFrom>::Error;
+                    type Error = <#via as ::core::convert::TryFrom<#field_ty>>::Error;
 
                     fn try_from(__: #field_ty) -> ::core::result::Result<Self, Self::Error> {
                         let intermediate: #via = __.try_into()?;

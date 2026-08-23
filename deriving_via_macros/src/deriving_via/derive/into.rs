@@ -27,7 +27,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
                 impl #impl_generics ::core::convert::From<#struct_name #ty_generics> for #via #where_clause {
                     fn from(__: #struct_name #ty_generics) -> #via {
                         let de: &#via = &__;
-                        de.to_owned()
+                        de.clone()
                     }
                 }
             }
