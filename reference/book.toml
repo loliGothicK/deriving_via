@@ -1,6 +1,5 @@
 [book]
 authors = ["LoliGothick"]
 language = "en"
-multilingual = false
 src = "src"
 title = "Deriving Via Reference"

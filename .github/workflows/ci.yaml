@@ -81,3 +81,15 @@ jobs:
 
       - name: Run test suite
         run: cargo test --all-features
+
+  mdbook-check:
+    name: Check mdBook build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Setup mdBook
+        uses: peaceiris/actions-mdbook@v2
+        with:
+          mdbook-version: 'latest'
+      - name: Build mdBook
+        run: mdbook build reference

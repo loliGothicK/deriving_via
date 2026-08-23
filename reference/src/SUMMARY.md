@@ -10,4 +10,4 @@
 - [Serde](./serde.md)
 - [Conversion](./conversion.md)
 - [Iterators](./iterators.md)
-- [Other](./other.md)
+- [Others](./others.md)

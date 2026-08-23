@@ -3,6 +3,7 @@ members = [
     "deriving_via",
     "deriving_via_impl",
     "deriving_via_macros",
+    "examples",
     "test_suite",
 ]
 
