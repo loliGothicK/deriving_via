@@ -8,11 +8,6 @@
 
 ---
 
-## Documentation
-
-For a comprehensive reference on all available derives and their behavior with and without the `via` attribute, please check out the **[Deriving Via Reference](https://LoliGothick.github.io/deriving_via/)**.
-
----
 Welcome to _Deriving via_, a library that makes it easy to deal with [Newtypes](https://doc.rust-lang.org/rust-by-example/generics/new_types.html) in Rust.
 This library provides a practical way to automatically derive implementations for newtype wrappers, in the spirit of Haskell's [GeneralisedNewtypeDeriving](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/newtype_deriving.html) and [Deriving via](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/deriving_via.html) extensions.
 
