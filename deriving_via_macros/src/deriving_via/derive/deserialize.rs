@@ -17,10 +17,10 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
     via.as_ref().map_or_else(
         || {
             quote! {
-                impl #impl_generics serde::Deserialize<'de> for #struct_name #ty_generics {
+                impl #impl_generics ::serde::Deserialize<'de> for #struct_name #ty_generics {
                     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
                     where
-                        D: serde::Deserializer<'de>,
+                        D: ::serde::Deserializer<'de>,
                         #predicates
                     {
                         Ok(#constructor(#field_ty::deserialize(deserializer)?.into()))
@@ -30,10 +30,10 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
         },
         |via| {
             quote! {
-                impl #impl_generics serde::Deserialize<'de> for #struct_name #ty_generics {
+                impl #impl_generics ::serde::Deserialize<'de> for #struct_name #ty_generics {
                     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
                     where
-                        D: serde::Deserializer<'de>,
+                        D: ::serde::Deserializer<'de>,
                         #predicates
                     {
                         Ok(#via::deserialize(deserializer)?.into())

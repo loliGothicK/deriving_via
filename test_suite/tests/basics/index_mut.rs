@@ -4,6 +4,7 @@ use deriving_via::DerivingVia;
 #[deriving(From, Index, IndexMut, Eq)]
 pub struct C(Vec<i32>);
 
+#[allow(unused)]
 #[derive(DerivingVia)]
 #[deriving(From, Index, IndexMut)]
 pub struct D<T>(Vec<T>);
