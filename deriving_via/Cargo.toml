@@ -7,8 +7,5 @@ repository.workspace = true
 license.workspace = true
 description = "DerivingVia"
 
-[package.metadata.release]
-disable-tag = true
-
 [dependencies]
 deriving_via_macros = { version = "2.2.0", path = "../deriving_via_macros" }
