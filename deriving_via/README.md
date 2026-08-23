@@ -8,11 +8,6 @@
 
 ---
 
-## Documentation
-
-For a comprehensive reference on all available derives and their behavior with and without the `via` attribute, please check out the **[Deriving Via Reference](https://LoliGothick.github.io/deriving_via/)**.
-
----
 Welcome to _Deriving via_, a library that makes it easy to deal with [Newtypes](https://doc.rust-lang.org/rust-by-example/generics/new_types.html) in Rust.
 This library provides a practical way to automatically derive implementations for newtype wrappers, in the spirit of Haskell's [GeneralisedNewtypeDeriving](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/newtype_deriving.html) and [Deriving via](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/deriving_via.html) extensions.
 
@@ -205,18 +200,68 @@ fn main() {
 
 ## Available Derives
 
-For detailed information on the required trait bounds, edge cases, and exact behavior for each derivation, please see the **[Reference Book](https://loligothick.github.io/deriving_via/)**.
+```rust
+struct Base(Underlying);
 
-- **Formatting**: `Display`, `Debug`
-- **Comparisons**: `Eq`, `Ord`, `PartialEq`, `PartialOrd`
-- **Arithmetic**: `Add`, `Sub`, `Mul`, `Div`, `Arithmetic`
-- **Assignment**: `AddAssign`, `SubAssign`, `MulAssign`, `DivAssign`
-- **Conversion**: `AsRef`, `AsMut`, `From`, `Into`, `TryFrom`, `FromStr`
-- **Indexing**: `Index`, `IndexMut`
-- **Hashing**: `Hash`
-- **Iterators**: `IntoIterator`, `FromIterator`, `Iter`
-- **Serde**: `Serialize`, `Deserialize`
-- **Others**: `Clone`, `Copy`, `Default`, `Deref`, `IntoInner`
+#[derive(DerivingVia)]
+#[deriving(<Derive>)]
+struct Target(Base);
+```
+
+- fmt
+  - `Display`
+    - requires: `Base: Display` or `(via = <Type>) and Type: Display`
+- ops
+  - `Eq`
+    - requires: `Base: Eq` or `(via = <Type>) and Type: Eq`
+  - `Ord`
+    - requires: `Base: Ord` or `(via = <Type>) and Type: Ord`
+  - `Add`-like (Add, Sub)
+    - requires: `Base: From<Underlying>`
+    - limitations: one hop or `#[transitive]`
+  - `Mul`-like (Mul, Div)
+    - requires: `Base: From<Underlying>`
+    - limitations: one hop or `#[transitive]`
+  - `Arithmetic` (Add, Sub, Mul, Div)
+    - requires: `Base: From<Underlying>`
+    - limitations: one hop or `#[transitive]`
+  - `Index`
+    - requires: `Base: Index` or `(via = <Type>) and Type: Index`
+  - `IndexMut`
+    - requires: `Base: IndexMut` or `(via = <Type>) and Type: IndexMut`
+  - `DerefMut`
+    - requires: `Base: DerefMut` or `(via = <Type>) and Type: DerefMut`
+- hash
+  - `Hash`
+    - requires: `Base: Hash` or `(via = <Type>) and Type: Hash`
+- serde
+  - `Serialize`
+    - requires: `Base: Serialize` or `(via = <Type>) and Type: Serialize`
+  - `Deserialize`
+    - requires: `Base: Deserialize` or `(via = <Type>) and Type: Deserialize`
+- convert
+  - `AsRef`
+  - `AsMut`
+  - `FromIterator`
+    - requires: `(via: <ItemType>)`
+  - `IntoIterator`
+    - requires: `Base: IntoIterator` or `(via: <Type>), Type: IntoIterator`
+  - `Into`
+    - requires: `Base: Into<Underlying>`
+    - limitations: one hop or `#[transitive]`
+  - `From`
+    - limitations: one hop or `#[transitive]`
+  - `TryFrom`
+    - requires: `Base: From<Underlying>`
+    - limitations: one hop or `#[transitive]`
+  - `FromStr`
+    - requires: `Base: From<Underlying>`
+    - limitations: one hop or `#[transitive]`
+- impls
+  - Iter
+    - requires: `Base: IntoIterator and Base dereferenceable to slice` or `(via: <Type>), Type: IntoIterator and Type dereferenceable to slice`
+  - IntoInner
+    - requires: `Base: Clone` or `(via: <Type>), Type: Clone`
 
 ## Caveat
 

@@ -1,0 +1,5 @@
+[book]
+authors = ["LoliGothick"]
+language = "en"
+src = "src"
+title = "Deriving Via Reference"

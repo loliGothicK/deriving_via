@@ -2,10 +2,14 @@ name: Catch and Flow
 
 on: [ push, pull_request ]
 
+permissions:
+  contents: read
+
 jobs:
   rustfmt:
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       pull-requests: write
       checks: write
     steps:
@@ -35,6 +39,10 @@ jobs:
     needs: [ rustfmt, deny ]
     name: "Test on ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
     strategy:
       fail-fast: false
       matrix:
@@ -81,3 +89,15 @@ jobs:
 
       - name: Run test suite
         run: cargo test --all-features
+
+  mdbook-check:
+    name: Check mdBook build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Setup mdBook
+        uses: peaceiris/actions-mdbook@v2
+        with:
+          mdbook-version: 'latest'
+      - name: Build mdBook
+        run: mdbook build reference
