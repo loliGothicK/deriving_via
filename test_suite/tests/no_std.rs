@@ -9,8 +9,14 @@ use deriving_via::DerivingVia;
 pub struct NoStdStruct(i32);
 
 #[derive(DerivingVia)]
-#[deriving(TryFrom)]
+#[deriving(TryFrom(via: i64))]
 pub struct NoStdTry(i32);
+
+impl core::convert::From<i64> for NoStdTry {
+    fn from(val: i64) -> Self {
+        NoStdTry(val as i32)
+    }
+}
 
 #[derive(DerivingVia)]
 #[deriving(AsRef, AsMut, Index, IndexMut)]
