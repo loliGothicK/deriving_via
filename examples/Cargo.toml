@@ -7,7 +7,7 @@ publish = false
 description = "DerivingVia examples"
 
 [dependencies]
-deriving_via = { version = "2.3.0", path = "../deriving_via" }
+deriving_via = { version = "=2.3.1", path = "../deriving_via" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 

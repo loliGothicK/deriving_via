@@ -8,4 +8,4 @@ license.workspace = true
 description = "DerivingVia"
 
 [dependencies]
-deriving_via_macros = { version = "2.3.0", path = "../deriving_via_macros" }
+deriving_via_macros = { version = "=2.3.1", path = "../deriving_via_macros" }
