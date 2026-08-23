@@ -1,5 +1,4 @@
 use itertools::Itertools;
-use proc_macro_error2::abort;
 use proc_macro2::TokenStream;
 use quote::quote;
 
@@ -7,7 +6,9 @@ pub(crate) type Constructor = TokenStream;
 pub(crate) type Accessor = TokenStream;
 pub(crate) type UnderlyingType = syn::Type;
 
-pub(crate) fn extract_fields(ast: &syn::DeriveInput) -> (Accessor, UnderlyingType, Constructor) {
+pub(crate) fn extract_fields(
+    ast: &syn::DeriveInput,
+) -> Result<(Accessor, UnderlyingType, Constructor), TokenStream> {
     let struct_name = &ast.ident;
     match ast.data {
         syn::Data::Struct(syn::DataStruct { ref fields, .. }) => {
@@ -32,7 +33,7 @@ pub(crate) fn extract_fields(ast: &syn::DeriveInput) -> (Accessor, UnderlyingTyp
                     .unwrap_or_else(|| {
                         quote! { (|__| #struct_name(__)) }
                     });
-                (accessor, field.ty.to_owned(), constructor)
+                Ok((accessor, field.ty.to_owned(), constructor))
             } else {
                 match fields
                     .iter()
@@ -77,25 +78,27 @@ pub(crate) fn extract_fields(ast: &syn::DeriveInput) -> (Accessor, UnderlyingTyp
                             .collect_vec();
 
                         let constructor = quote! { (|__| #struct_name { #accessor: __, #(#defaults: Default::default()),* }) };
-                        (accessor, ty.to_owned(), constructor)
+                        Ok((accessor, ty.to_owned(), constructor))
                     }
-                    [] => abort!(
+                    [] => Err(syn::Error::new_spanned(
                         ast,
-                        "#[underlying] is required for multiple fields";
-                        help = "Specify #[underlying] to the field.";
-                    ),
-                    _ => abort!(
+                        "#[underlying] is required for multiple fields: Specify #[underlying] to \
+                         the field.",
+                    )
+                    .to_compile_error()),
+                    _ => Err(syn::Error::new_spanned(
                         ast,
-                        "multiple #[underlying] specifier is not allowed";
-                        help = "Specify #[underlying] to only one field.";
-                    ),
+                        "multiple #[underlying] specifier is not allowed: Specify #[underlying] \
+                         to only one field.",
+                    )
+                    .to_compile_error()),
                 }
             }
         }
-        _ => abort!(
+        _ => Err(syn::Error::new_spanned(
             ast,
-            "input is not a struct";
-            help = "#[derive(DerivingVia)] can only be used with structs";
-        ),
+            "input is not a struct: #[derive(DerivingVia)] can only be used with structs",
+        )
+        .to_compile_error()),
     }
 }

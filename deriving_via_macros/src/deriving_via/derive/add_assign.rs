@@ -9,7 +9,10 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
     let struct_name = &input.ident;
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
 
-    let (accessor, _, _) = extract_fields(input);
+    let (accessor, _, _) = match extract_fields(input) {
+        Ok(res) => res,
+        Err(e) => return e,
+    };
 
     via.as_ref().map_or_else(
         || {

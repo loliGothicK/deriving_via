@@ -1,4 +1,3 @@
-use proc_macro_error2::abort;
 use proc_macro2::TokenStream;
 use quote::quote;
 
@@ -7,7 +6,10 @@ use super::super::utils::extract_fields;
 pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
-    let (_, _, constructor) = extract_fields(input);
+    let (_, _, constructor) = match extract_fields(input) {
+        Ok(res) => res,
+        Err(e) => return e,
+    };
 
     if let Some(via) = via {
         quote! {
@@ -20,10 +22,11 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
             }
         }
     } else {
-        abort!(
+        syn::Error::new_spanned(
             input,
-            "#[deriving(FromIterator)] is not allowed";
-            help = "Specify via as #[deriving(FromIterator(via: <ItemType>)])";
-        );
+            "#[deriving(FromIterator)] is not allowed: Specify via as \
+             #[deriving(FromIterator(via: <ItemType>))]",
+        )
+        .to_compile_error()
     }
 }

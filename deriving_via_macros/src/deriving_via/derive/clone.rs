@@ -6,7 +6,10 @@ use super::super::utils::extract_fields;
 pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> TokenStream {
     let struct_name = &input.ident;
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
-    let (accessor, _, constructor) = extract_fields(input);
+    let (accessor, _, constructor) = match extract_fields(input) {
+        Ok(res) => res,
+        Err(e) => return e,
+    };
 
     via.as_ref().map_or_else(
         || {
