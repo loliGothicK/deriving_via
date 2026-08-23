@@ -75,14 +75,14 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
                     fn mul_assign(&mut self, rhs: Self) {
                         let lhs: &mut #via = self;
                         let rhs: &#via = &rhs;
-                        lhs.div_assign(rhs.to_owned());
+                        lhs.div_assign(rhs.clone());
                     }
                 }
                 impl #impl_generics ::core::ops::DivAssign for #struct_name #ty_generics #where_clause_for_div {
                     fn div_assign(&mut self, rhs: Self) {
                         let lhs: &mut #via = self;
                         let rhs: &#via = &rhs;
-                        lhs.div_assign(rhs.to_owned());
+                        lhs.div_assign(rhs.clone());
                     }
                 }
             }

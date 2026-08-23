@@ -17,7 +17,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
                 #[allow(clippy::non_canonical_clone_impl)]
                 impl #impl_generics Clone for #struct_name #ty_generics #where_clause {
                     fn clone(&self) -> Self {
-                        #constructor(self. #accessor .to_owned())
+                        #constructor(self. #accessor .clone())
                     }
                 }
 
@@ -29,7 +29,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
                 impl #impl_generics Clone for #struct_name #ty_generics #where_clause {
                     fn clone(&self) -> Self {
                         let __: &#via = &self. #accessor;
-                        __.to_owned().into()
+                        __.clone().into()
                     }
                 }
 

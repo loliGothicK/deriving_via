@@ -81,7 +81,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
                     fn add(self, other: Self) -> Self {
                         let lhs: &#via = &self;
                         let rhs: &#via = &other;
-                        (lhs.to_owned() + rhs.to_owned()).into()
+                        (lhs.clone() + rhs.clone()).into()
                     }
                 }
                 impl #impl_generics ::core::ops::Sub for #struct_name #ty_generics #where_clause_for_sub {
@@ -90,7 +90,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
                     fn sub(self, other: Self) -> Self {
                         let lhs: &#via = &self;
                         let rhs: &#via = &other;
-                        (lhs.to_owned() - rhs.to_owned()).into()
+                        (lhs.clone() - rhs.clone()).into()
                     }
                 }
             }

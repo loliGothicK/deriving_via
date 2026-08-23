@@ -18,7 +18,7 @@ pub(crate) fn extract(input: &syn::DeriveInput, via: Option<syn::Type>) -> Token
                 where #inner: ::core::fmt::Debug
             {
                 let inner: &#inner = &self.#accessor;
-                inner.to_owned()
+                inner.clone()
             }
         }
     }
