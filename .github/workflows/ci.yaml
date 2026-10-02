@@ -72,7 +72,7 @@ jobs:
           SCCACHE_GHA_ENABLED: "true"
           RUSTC_WRAPPER: "sccache"
         with:
-          version: "v0.9.1"
+          version: "v0.18.0"
 
       - name: Configure Cache Env
         uses: actions/github-script@v9
